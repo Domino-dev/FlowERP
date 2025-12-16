@@ -1,0 +1,21 @@
+# composer
+/vendor/
+
+# logs and temporary files
+log/*
+!log/.gitkeep
+
+!temp/.gitkeep
+temp/cache/*
+
+# Latte cache
+/**/*.latte.cache
+/nbproject/
+
+
+# TEST
+app/Presentation/Test/
+
+# SECRET
+config/secret.neon
+config/production.neon

@@ -1,0 +1,48 @@
+# ======================================
+# Extensions ===========================
+extensions:
+	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
+
+	nettrine.dbal: Nettrine\DBAL\DI\DbalExtension
+
+	nettrine.orm: Nettrine\ORM\DI\OrmExtension
+	
+	nettrine.cache: Nettrine\Cache\DI\CacheExtension
+
+	nettrine.migrations: Nettrine\Migrations\DI\MigrationsExtension
+
+	nettrine.annotations: Nettrine\Annotations\DI\AnnotationsExtension
+
+nettrine.dbal:
+  debug:
+    panel: %debugMode%
+  
+  connections:
+    default:
+      driver: pdo_mysql
+      host: localhost
+      port: 3306
+      user: root
+      password: password
+      dbname: flow_erp
+      charset: utf8
+      serverVersion: 5.7.44
+
+nettrine.orm:
+  managers:
+    default:
+      connection: default
+      mapping:
+        App:
+          type: attributes
+          directories: [%appDir%/Database]
+          namespace: App\Database
+
+nettrine.annotations:
+  debug: %debugMode%
+
+nettrine.migrations:
+  table: doctrine_migration_versions
+  column: version
+  directories:
+        App\Migrations: %appDir%/Migrations

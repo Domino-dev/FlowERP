@@ -1,0 +1,4 @@
+security:
+	authentication:
+		expiration: 30 minutes       
+		storage: session   
