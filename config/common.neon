@@ -1,20 +1,18 @@
+# ======================================
+# Includes ===============================
+includes:
+    - doctrine.neon
+    - security.neon
+# ======================================
+# Config ===============================
 php:
     date.timezone: Europe/Prague
-
-parameters:
 
 application:
 	errorPresenter:
 		4xx: Error:Error4xx
 		5xx: Error:Error5xx
 	mapping: App\Presentation\*\**Presenter
-
-
-database:
-	dsn: 'sqlite::memory:'
-	user:
-	password:
-
 
 latte:
 	strictTypes: yes
@@ -34,3 +32,8 @@ di:
 	export:
 		parameters: yes
 		tags: no
+
+console:
+	url: http://localhost
+extensions:
+	- Contributte\FormMultiplier\DI\MultiplierExtension
