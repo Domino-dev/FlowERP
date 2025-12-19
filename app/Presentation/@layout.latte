@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width">
 
 	<title>{ifset title}{include title|stripHtml} | {/ifset}Nette Web</title>
-
+	{include styles}
 	{asset? 'main.js'}
 </head>
 
@@ -15,3 +15,7 @@
 	{include content}
 </body>
 </html>
+<script src="{$basePath}/scripts/lib/Naja.js"></script>
+<script src="{$basePath}/scripts/lib/jquery-3.7.1.min.js"></script>
+
+{include scripts}
