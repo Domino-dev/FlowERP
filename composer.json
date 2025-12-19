@@ -29,7 +29,8 @@
 		"nettrine/dbal": "^0.10.2",
 		"nettrine/extra": "^0.2.0@dev",
 		"ramsey/uuid": "^4.9",
-		"contributte/forms-multiplier": "^4.0"
+		"contributte/forms-multiplier": "^4.0",
+		"nettrine/fixtures": "^0.8.0"
 	},
 	"require-dev": {
 		"nette/tester": "^2.5",
