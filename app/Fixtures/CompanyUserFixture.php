@@ -22,6 +22,7 @@ class CompanyUserFixture implements FixtureInterface {
 		'admin@admin.cz',
 		'$2y$10$yfaDtt/tUgXo.CsfO9zNMOiMVhzKyX6k/Ac8gEgUNYCXYXi9YU8p2',
 		'admin',
+		true,
 		true);
 	$manager->persist($companyUser);
 	$manager->flush();

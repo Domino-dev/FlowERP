@@ -5,10 +5,6 @@ namespace App\Database;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
-use App\Helpers\UUIDGenerator;
-
-use App\Database\CompanyUser;
-
 /**
  * @extends EntityRepository<CompanyUser>
  */
@@ -22,15 +18,14 @@ final class CompanyUserRepository extends EntityRepository
     
     /**
      * 
-     * 
      * @param int $page
-     * @param int $limit
+     * @param string $searchSlug
      * 
      * @return Paginator
      */
     public function findPaginated(int $page, string $searchSlug): Paginator{
 	$qb = $this->createQueryBuilder('cu')
-	    ->where('cu.name LIKE :searchslug')
+	    ->where('cu.name LIKE :searchslug OR cu.role LIKE :searchslug')
 	    ->setParameter('searchslug', '%'.$searchSlug.'%')
 	    ->select('cu')
 	    ->orderBy('cu.created', 'DESC')

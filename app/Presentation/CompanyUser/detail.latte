@@ -1,0 +1,60 @@
+{block styles}
+
+{/block}
+{block content}
+<a n:href="CompanyUser:default">Back to list</a>
+{form userDetailForm}
+
+    <h2>Credentials</h2>
+    <div class="row">
+	<div class="col">
+            {label internalID/}
+            {input internalID}
+        </div>
+        <div class="col">
+            {label isEnabled/}
+            {input isEnabled}
+        </div>
+        <div class="col">
+            {label name/}
+            {input name}
+        </div>
+	<div class="col">
+            {label email/}
+            {input email}
+        </div>
+	<div class="col">
+            {label phone/}
+            {input phone}
+        </div>
+	<div class="col">
+            {label roles/}
+            {input roles}
+        </div>
+    </div>
+    <div>
+	<div class="col">
+	{label password/}
+	{input password}
+	</div>
+    </div>
+    <div>
+	<div class="col">
+            {label note/}
+            {input note}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        {input submitCompanyUser}
+	{if !empty($companyUser)}
+	    {input deleteCompanyUser}
+	{/if}
+    </div>
+
+{/form}
+
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/companyUser.js"></script>
+{/block}

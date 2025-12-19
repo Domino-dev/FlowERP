@@ -32,6 +32,8 @@ class CompanyUser
     protected string $password;
     #[ORM\Column(type: "string",length: 64)]
     protected string $role;    
+    #[ORM\Column(name:"is_main",type: "boolean", options: ["default" => true])]
+    protected bool $isMain;
     #[ORM\Column(name:"is_enabled",type: "boolean", options: ["default" => true])]
     protected bool $isEnabled;
     #[ORM\Column(name: "last_update",type: "datetime", options: ["default" => "CURRENT_TIMESTAMP"])]
@@ -39,7 +41,7 @@ class CompanyUser
     #[ORM\Column(type: "datetime_immutable", options: ["default" => "CURRENT_TIMESTAMP"])]
     protected \DateTimeImmutable $created;
     
-    public function __construct(string $internalID, string $name, ?string $note, ?string $phone, string $email, string $password, string $role, bool $isEnabled) {
+    public function __construct(string $internalID, string $name, ?string $note, ?string $phone, string $email, string $password, string $role, bool $isMain = false, bool $isEnabled = true) {
 	$this->internalID = $internalID;
 	$this->name = $name;
 	$this->note = $note;
@@ -47,6 +49,7 @@ class CompanyUser
 	$this->email = $email;
 	$this->password = $password;
 	$this->role = $role;
+	$this->isMain = $isMain;
 	$this->isEnabled = $isEnabled;
 	$this->lastUpdate = new \DateTime();
 	$this->created = new \DateTimeImmutable();
@@ -90,6 +93,10 @@ class CompanyUser
 	return $this->role;
     }
 
+    public function getIsMain(): bool {
+	return $this->isMain;
+    }
+    
     public function getIsEnabled(): bool {
 	return $this->isEnabled;
     }
@@ -138,6 +145,10 @@ class CompanyUser
 	$this->role = $role;
     }
 
+    public function setIsMain(bool $isMain): void {
+	$this->isMain = $isMain;
+    }
+    
     public function setIsEnabled(bool $isEnabled): void {
 	$this->isEnabled = $isEnabled;
     }

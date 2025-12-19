@@ -1,0 +1,44 @@
+{block styles}
+
+{/block}
+{block content}
+
+<a n:href="CompanyUser:detail">Create user</a>
+<div class="page-content">
+    <h1>Users</h1>
+    <p>Total users: {$totalCompanyUsersCount}</p>
+    <input type="text" id="company-users-search" placeholder="Name or role"/>
+    {if $totalCompanyUsersCount > 0}
+    <div n:snippet="company-users">
+	<span>Searched company users: {$searchedCompanyUsersCount}</span>
+	<div id="company-users-header">
+	    <span>Name</span>
+	    <span>Role</span>
+	    <span></span>
+	</div>
+	<div id="company-users">
+	    {foreach $companyUsers as $companyUser}
+		<div class="comapny-user">
+		    <span>{$companyUser->getName()}</span>
+		    <span>{$companyUser->getRole()}</span>
+		    <span><a n:href="CompanyUser:detail, 'uid' => $companyUser->getInternalID()">Detail</a></span>
+		</div>
+	    {/foreach}
+	</div>
+
+	<div class="pagination">
+	    {if $page > 1}
+		<button class="company-user-page-button" data-page-number="{$page-1}">Previous</button>
+	    {/if}
+
+	    {if $page * $limit < $searchedCompanyUsersCount}
+		<button class="company-user-page-button" data-page-number="{$page+1}">Next</button>
+	    {/if}
+	</div>
+    </div>
+    {/if}
+</div>
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/companyUser.js"></script>
+{/block}
