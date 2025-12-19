@@ -1,6 +1,9 @@
 services:
 	- App\Core\RouterFactory::createRouter
-
+	# Authenticator
+	- App\Security\Authenticator
+	# Fixtures
+	- App\Fixtures\CompanyUserFixture
 
 search:
 	-	in: %appDir%
