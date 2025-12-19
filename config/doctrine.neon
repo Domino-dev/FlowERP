@@ -13,6 +13,8 @@ extensions:
 
 	nettrine.annotations: Nettrine\Annotations\DI\AnnotationsExtension
 
+	nettrine.fixtures: Nettrine\Fixtures\DI\FixturesExtension
+
 nettrine.dbal:
   debug:
     panel: %debugMode%
@@ -46,3 +48,7 @@ nettrine.migrations:
   column: version
   directories:
         App\Migrations: %appDir%/Migrations
+
+nettrine.fixtures:
+  paths:
+    - %appDir%/fixtures
