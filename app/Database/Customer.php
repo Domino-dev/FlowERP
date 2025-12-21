@@ -56,11 +56,10 @@ class Customer{
     #[ORM\Column(type: "datetime_immutable", options: ["default" => "CURRENT_TIMESTAMP"])]
     protected \DateTimeImmutable $created; 
     
-    public function __construct(string $internalID, string $identificator, string $name, string $companyName, ?string $companyNumber, ?string $vatNumber, ?string $note, ?string $phone, string $email, int $dueDays, ?PriceList $priceList, ?CustomerBillingAddress $customerBillingAddress, ?CustomerDeliveryAddress $customerDeliveryAddress = null, bool $isEnabled = false,?string $lastUpdate = null) {
+    public function __construct(string $internalID, string $identificator, string $name, ?string $companyNumber, ?string $vatNumber, ?string $note, ?string $phone, string $email, int $dueDays, ?PriceList $priceList, ?CustomerBillingAddress $customerBillingAddress, ?CustomerDeliveryAddress $customerDeliveryAddress = null, bool $isEnabled = false,?string $lastUpdate = null) {
 	$this->internalID = $internalID;
 	$this->identificator = $identificator;
 	$this->name = $name;
-	$this->companyName = $companyName;
 	$this->companyNumber = $companyNumber;
 	$this->vatNumber = $vatNumber;
 	$this->note = $note;
@@ -91,10 +90,6 @@ class Customer{
     
     public function getName(): string {
 	return $this->name;
-    }
-
-    public function getCompanyName(): string {
-	return $this->companyName;
     }
 
     public function getCompanyNumber(): ?string {
@@ -163,10 +158,6 @@ class Customer{
     
     public function setName(string $name): void {
 	$this->name = $name;
-    }
-
-    public function setCompanyName(string $companyName): void {
-	$this->companyName = $companyName;
     }
 
     public function setCompanyNumber(?string $companyNumber): void {

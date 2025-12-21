@@ -1,0 +1,96 @@
+
+<h2>Credentials</h2>
+<div class="row">
+	<div class="col">
+            {label customer-isEnabled/}
+            {input customer-isEnabled}
+        </div>
+	{if $customer}
+	<div class="col">
+            {label customer-customerInternalID/}
+            {input customer-customerInternalID}
+        </div>
+	{/if}
+	<div class="col">
+            {label customer-identificator/}
+            {input customer-identificator}
+        </div>
+	<span id="customer-identificator-unique-alert"></span>
+	
+        <div class="col">
+            {label customer-name/}
+            {input customer-name}
+        </div>
+	<div class="col">
+            {label customer-email/}
+            {input customer-email}
+        </div>
+	<div class="col">
+            {label customer-phone/}
+            {input customer-phone}
+        </div>
+	{if $presenter->getName() === 'Customer'}
+	<div class="col">
+            {label customer-priceList/}
+            {input customer-priceList}
+        </div>
+	{/if}
+        <div class="col">
+            {label customer-dueDays/}
+            {input customer-dueDays}
+        </div>
+	<div class="col">
+            {label customer-companyNumber/}
+            {input customer-companyNumber}
+        </div>
+        <div class="col">
+            {label customer-vatNumber/}
+            {input customer-vatNumber}
+        </div>
+        <div class="col">
+            {label customer-note/}
+            {input customer-note}
+        </div>
+    </div>
+
+    <h2>Billing address</h2>
+    <div class="row">
+        <div class="col">
+            {label customer-customerBillingAddress-street/}
+            {input customer-customerBillingAddress-street}
+        </div>
+        <div class="col">
+            {label customer-customerBillingAddress-city/}
+            {input customer-customerBillingAddress-city}
+        </div>
+        <div class="col">
+            {label customer-customerBillingAddress-zip/}
+            {input customer-customerBillingAddress-zip}
+        </div>
+        <div class="col">
+            {label customer-customerBillingAddress-country/}
+            {input customer-customerBillingAddress-country}
+        </div>
+    </div>
+
+    <h2>Delivery address</h2>
+    {label isDifferentDeliveryAddress/}
+    {input isDifferentDeliveryAddress}
+    <div class="row" id="deliveryAddress">
+        <div class="col">
+            {label customer-customerDeliveryAddress-street/}
+            {input customer-customerDeliveryAddress-street}
+        </div>
+        <div class="col">
+            {label customer-customerDeliveryAddress-city/}
+            {input customer-customerDeliveryAddress-city}
+        </div>
+        <div class="col">
+            {label customer-customerDeliveryAddress-zip/}
+            {input customer-customerDeliveryAddress-zip}
+        </div>
+        <div class="col">
+            {label customer-customerDeliveryAddress-country/}
+            {input customer-customerDeliveryAddress-country}
+        </div>
+    </div>

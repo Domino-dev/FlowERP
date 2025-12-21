@@ -22,19 +22,18 @@ final class CustomerRepository extends EntityRepository
 	return self::FIND_PAGINATED_LIMIT;
     }
     
-    
     /**
      * 
      * 
      * @param int $page
-     * @param int $limit
+     * @param string $searchSlug
      * 
      * @return Paginator
      */
     public function findPaginated(int $page, string $searchSlug): Paginator
     {
 	$qb = $this->createQueryBuilder('c')
-	    ->where('c.name LIKE :searchslug OR c.email LIKE :searchslug OR c.companyName LIKE :searchslug OR c.vatNumber LIKE :searchslug')
+	    ->where('c.name LIKE :searchslug OR c.email LIKE :searchslug OR c.vatNumber LIKE :searchslug')
 	    ->setParameter('searchslug', '%'.$searchSlug.'%')
 	    ->select('c')
 	    ->orderBy('c.created', 'DESC')
@@ -46,7 +45,7 @@ final class CustomerRepository extends EntityRepository
     
     public function findByString(string $searchSlug){
 	$customers = $this->createQueryBuilder('c')
-		->where('c.email LIKE :searchslug OR c.companyName LIKE :searchslug OR c.vatNumber LIKE :searchslug')
+		->where('c.email LIKE :searchslug OR c.vatNumber LIKE :searchslug')
 		->setParameter('searchslug', '%'.$searchSlug.'%')
 		->select('c.name,c.companyName')
 		->setMaxResults(10)

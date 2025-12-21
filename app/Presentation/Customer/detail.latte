@@ -1,0 +1,31 @@
+{* Latte template *}
+{block styles}
+<link rel="stylesheet" href="{$basePath}/styles/customer.css"/>
+{/block}
+
+{block content}
+
+<a n:href="Customer:default">Back to list</a>
+{if !empty($customer)}
+     <h2>Customer detail</h2>
+ {else}
+     <h2>Customer creation</h2>
+ {/if}
+
+{form customerDetailForm}
+
+    {include '_customer.latte'}
+
+    <div>
+        {input submitCustomer}
+	{if $customer}
+	    {input deleteCustomer}
+	{/if}
+    </div>
+
+{/form}
+
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/customer.js"></script>
+{/block}

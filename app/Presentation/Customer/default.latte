@@ -1,0 +1,52 @@
+{* Latte template *}
+{block styles}
+<link rel="stylesheet" href="{$basePath}/styles/customer.css"/>
+{/block}
+{block content}
+
+<a n:href="Customer:detail">Create customer</a>
+<div class="page-content">
+    <h1>Customers</h1>
+
+    <p>Total customers: {$customersTotalCount}</p>
+    <input type="text" id="customer-search" placeholder="Search customer"/>
+    {if $customersTotalCount > 0}
+    <div n:snippet="customers">
+	<span>Searched customers: {$searchedCustomersCount}</span>
+	<div id="customers-header">
+	    <span>Identity</span>
+	    <span>Name</span>
+	    <span>Company name</span>
+	    <span>Mail</span>
+	    <span>Billing address</span>
+	    <span></span>
+	</div>
+	<div id="customers">
+	{foreach $customers as $customer}
+	    <div class="customer">
+		<span>{$customer->getIdentificator()}</span>
+		<span>{$customer->getName()}</span>
+		<span>{$customer->getEmail()}</span>
+		<span>{$customer->getCustomerBillingAddress()->getFullBillingAddress()|truncate:20}</span>
+		<a n:href="Customer:detail,'cid' => $customer->getInternalID()">Detail</a>
+	    </div>
+	{/foreach}
+	</div>
+
+	<div class="pagination">
+	    {if $page > 1}
+		<button class="customer-page-button" data-page-number="{$page-1}">Previous</button>
+	    {/if}
+
+	    {if $page * $limit < $searchedCustomersCount}
+		<button class="customer-page-button" data-page-number="{$page+1}">Next</button>
+	    {/if}
+	</div>
+    </div>
+    {/if}
+</div>
+
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/customer.js"></script>
+{/block}
