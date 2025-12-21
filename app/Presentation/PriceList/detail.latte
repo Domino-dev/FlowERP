@@ -1,0 +1,47 @@
+{block styles}
+
+{/block}
+{block content}
+<a n:href="PriceList:default">Back to list</a>
+{form priceListDetailForm}
+
+    {if !empty($priceList)}
+	<h2>Price list detail</h2>
+    {else}
+	<h2>Price list creation</h2>
+    {/if}
+    
+    <div class="row">
+	{label priceList-internalID/}
+	{input priceList-internalID}
+	<div class="col">
+            {label priceList-isDefault/}
+            {input priceList-isDefault}
+        </div>
+	<div class="col">
+            {label priceList-name/}
+            {input priceList-name}
+        </div>
+        <div class="col">
+            {label priceList-currency/}
+            {input priceList-currency}
+        </div>
+        <div class="col">
+            {label priceList-isWithVAT/}
+            {input priceList-isWithVAT}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        {input submitPriceList}
+	{if !empty($priceList)}
+	    {input deletePriceList}
+	{/if}
+    </div>
+
+{/form}
+
+{/block content}
+{block scripts}
+    
+{/block}

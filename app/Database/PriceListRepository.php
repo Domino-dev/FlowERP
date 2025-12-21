@@ -23,7 +23,7 @@ final class PriceListRepository extends EntityRepository
      * 
      * 
      * @param int $page
-     * @param int $limit
+     * @param string $searchSlug
      * 
      * @return Paginator
      */
@@ -41,11 +41,5 @@ final class PriceListRepository extends EntityRepository
     
     public function getDefaultPriceList():?PriceList{
 	return $this->findOneBy(['isDefault' => true]);
-    }
-    
-    public function savePriceList(PriceList $priceList): void{
-	$this->getEntityManager()->persist($priceList);
-    }
-    
-    
+    }    
 }

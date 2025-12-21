@@ -1,0 +1,47 @@
+{block styles}
+
+{/block}
+{block content}
+
+<a n:href="PriceList:detail" class="creation-a">Create price list</a>
+
+<div class="page-content">
+    <h1>Price lists</h1>
+    <p>Total price lists: {$totalPriceListsCount}</p>
+    <input type="text" id="price-lists-search" placeholder="Price list name"/>
+    {if $totalPriceListsCount > 0}
+    <div n:snippet="price-lists">
+	<div id="price-lists-header">
+	    <span>Name</span>
+	    <span>Currency</span>
+	    <span>is with VAT</span>
+	    <span></span>
+	</div>
+	<div id="price-lists">
+	    {foreach $priceLists as $priceList}
+		<div class="price-list">
+		    <span>{$priceList->getName()}</span>
+		    <span>{$priceList->getCurrency()}</span>
+		    <span>{$priceList->getIsWithVat() ? 'Yes' : 'No'}</span>
+		    <span><a n:href="PriceList:detail, 'plid' => $priceList->getInternalID()">Detail</a></span>
+		</div>
+	    {/foreach}
+	</div>
+	
+	<div class="pagination">
+	    {if $page > 1}
+		<button class="price-list-page-button" data-page-number="{$page-1}">Previous</button>
+	    {/if}
+
+	    {if $page * $limit < $searchedPriceListsCount}
+		<button class="price-list-page-button" data-page-number="{$page+1}">Next</button>
+	    {/if}
+	</div>
+    </div>
+    {/if}
+</div>
+
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/priceList.js"></script>
+{/block}
