@@ -1,0 +1,45 @@
+{block styles}
+
+{/block}
+{block content}
+
+<a n:href="Product:detail" class="creation-a">Create product</a>
+
+<div class="page-content">
+    <h1>Products</h1>
+    <p>Total products: {$totalProductsCount}</p>
+    <input type="text" id="products-search" placeholder="Catalogue code or name"/>
+    {if $totalProductsCount > 0}
+    <div n:snippet="products">
+	<span>Searched products count: {$searchedProductsCount}</span>
+	<div id="products-header">
+	    <span>Catalogue code</span>
+	    <span>name</span>
+	    <span></span>
+	</div>
+	<div id="products">
+	    {foreach $products as $product}
+		<div class="product">
+		    <span>{$product->getCatalogueCode()}</span>
+		    <span>{$product->getName()|truncate:32}</span>
+		    <span><a n:href="Product:detail, 'pid' => $product->getInternalID()">Detail</a></span>
+		</div>
+	    {/foreach}
+	</div>
+
+	<div class="pagination">
+	    {if $page > 1}
+		<button class="product-page-button" data-page-number="{$page-1}">Previous</button>
+	    {/if}
+
+	    {if $page * $limit < $searchedProductsCount}
+		<button class="product-page-button" data-page-number="{$page+1}">Next</button>
+	    {/if}
+	</div>
+    </div>
+    {/if}
+</div>
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/product.js"></script>
+{/block}

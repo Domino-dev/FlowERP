@@ -1,0 +1,48 @@
+{block styles}
+
+{/block}
+{block content}
+<a n:href="Product:default">Back to list</a>
+{form productDetailForm}
+    
+    {if !empty($product)}
+	<h2>Product detail</h2>
+    {else}
+	<h2>Product creation</h2>
+    {/if}
+    
+
+    {input product-internalID}
+    
+    <div class="row">
+	<div class="col">
+            {label product-isEnabled/}
+            {input product-isEnabled}
+        </div>
+	<div class="col">
+            {label product-catalogueCode/}
+            {input product-catalogueCode}
+        </div>
+        <div class="col">
+            {label product-name/}
+            {input product-name}
+        </div>
+        <div class="col">
+            {label product-vatRate/}
+            {input product-vatRate}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        {input submitProduct}
+	{if !empty($product)}
+	    {input deleteProduct}
+	{/if}
+    </div>
+
+{/form}
+    
+{/block content}
+{block scripts}
+    
+{/block}

@@ -25,7 +25,7 @@ class Product {
     #[ORM\Column(name: "name",type: "string", length:255)]
     protected string $name;
     #[ORM\Column(name: "vat_rate",type:'decimal', precision:10, scale: 2)]
-    protected string $vatRate;
+    protected float $vatRate;
     #[ORM\Column(name: "is_enabled",type: "boolean", options: ["default" => true])]
     protected bool $isEnabled;
     #[ORM\Column(name: "last_update",type: "datetime", options: ["default" => "CURRENT_TIMESTAMP"])]
@@ -37,12 +37,14 @@ class Product {
 	    string $internalID, 
 	    string $catalogueCode, 
 	    string $name, 
+	    float $vatRate,
 	    bool $isEnabled, 
 	    ?\DateTime $lastUpdate = null, 
 	    ?\DateTimeImmutable $created = null) {
 	$this->internalID = $internalID;
 	$this->catalogueCode = $catalogueCode;
 	$this->name = $name;
+	$this->vatRate = $vatRate;
 	$this->isEnabled = $isEnabled;
 	$this->lastUpdate = $lastUpdate ?? new \DateTime();
 	$this->created = $created ?? new \DateTimeImmutable();
@@ -69,6 +71,10 @@ class Product {
 	return $this->name;
     }
 
+    public function getVatRate(): float {
+	return $this->vatRate;
+    }
+    
     public function getIsEnabled(): bool {
 	return $this->isEnabled;
     }
@@ -97,6 +103,10 @@ class Product {
 	$this->name = $name;
     }
 
+    public function setVatRate(float $vatRate): void {
+	$this->vatRate = $vatRate;
+    }
+    
     public function setIsEnabled(bool $isEnabled): void {
 	$this->isEnabled = $isEnabled;
     }

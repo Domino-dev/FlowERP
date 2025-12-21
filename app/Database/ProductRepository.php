@@ -54,8 +54,4 @@ final class ProductRepository extends EntityRepository
 	
 	return $products;
     }
-    
-    public function saveProduct(Product $product): void{
-	$this->getEntityManager()->persist($product);
-    }
 }
