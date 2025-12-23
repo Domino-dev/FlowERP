@@ -10,9 +10,9 @@ use App\Database\PriceList;
 #[ORM\Entity(repositoryClass: PriceRepository::class)]
 #[ORM\Table(name:'`prices`',
 	uniqueConstraints: [
-        new \Doctrine\ORM\Mapping\UniqueConstraint(
+        new ORM\UniqueConstraint(
             name: 'UQ_products_id__pricelists_id__valid',
-            columns: ['products_id', 'price_lists_id','valid_from','valid_to']
+            columns: ['products_id', 'price_lists_id','valid_from']
         )
 ])]
 class Price {

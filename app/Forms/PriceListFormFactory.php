@@ -13,7 +13,7 @@ class PriceListFormFactory {
 	
 	$priceListContainer = $form->addContainer('priceList');
 	$priceListInternalID = $priceListContainer->addHidden('internalID')->setHtmlId('price-list-internal-id');
-	$isDefault = $priceListContainer->addCheckbox('isDefault','Is default')->setHtmlId('price-list-is-default')->setRequired();
+	$isDefault = $priceListContainer->addCheckbox('isDefault','Is default')->setHtmlId('price-list-is-default');
 	$name = $priceListContainer->addText('name','Name')->setHtmlId('price-list-name')->setRequired();
 	$currency = $priceListContainer->addSelect('currency','Currency', self::getCurrencies())->setHtmlId('price-list-currency')->setRequired();
 	$isWithVAT = $priceListContainer->addCheckbox('isWithVAT','Is with vat')->setHtmlId('price-list-is-with-VAT');

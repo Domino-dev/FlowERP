@@ -1,0 +1,64 @@
+{block styles}
+
+{/block}
+{block content}
+<a n:href="Price:default">Back to list</a>
+{form priceDetailForm}
+
+    {if !empty($prices)}
+    <h2>Price detail</h2>
+    {else}
+    <h2>Price creation</h2>
+    {/if}
+    <div class="row">
+	<div class="col">
+            {input productInternalID}
+        </div>
+    </div>
+    {if empty($prices)}
+    <div class="row">
+	<div class="col">
+            {label productCatalogueCodeSearch/}
+            {input productCatalogueCodeSearch}
+        </div>
+	<div id="product-autocomplete">
+	    
+	</div>
+    </div>
+    {/if}
+    <div class="row">
+	<div class="col">
+            <span>Product: </span><span id="price-product-catalogue-code"><b>{if ($product)}{$product->getCatalogueCode()}{/if}</b></span>
+	    <span id="price-product-name">{if ($product)}{$product->getName()}{/if}</span>
+        </div>
+    </div>
+	
+    {snippet productPrices}
+    <div n:multiplier="multiplier" class="multiplier ajax">
+	 <input n:name="internalID">
+	<label n:name="priceListInternalID"/>
+        <select n:name="priceListInternalID"></select>
+	<label n:name="value"/>
+        <input n:name="value">
+	<label n:name="validFrom"/>
+        <input n:name="validFrom">
+	<label n:name="validTo"/>
+        <input n:name="validTo">
+	{multiplier:remove class:'ajax', data-naja-history: 'off'}
+    </div>
+    {multiplier:add multiplier class:'ajax'}
+    {/snippet}
+    <div class="mt-3">
+	
+        {input submitPrice}
+	{if !empty($prices)}
+	    {input deletePrice}
+	{/if}
+    </div>
+
+{/form}
+
+{/block content}
+{block scripts}
+<script src="{$basePath}/scripts/price.js"></script>
+{/block}

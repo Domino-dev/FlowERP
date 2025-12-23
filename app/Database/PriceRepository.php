@@ -26,7 +26,7 @@ final class PriceRepository extends EntityRepository
      * 
      * 
      * @param int $page
-     * @param int $limit
+     * @param int $searchSlug
      * 
      * @return Paginator
      */
@@ -40,9 +40,5 @@ final class PriceRepository extends EntityRepository
 	    ->setMaxResults(self::FIND_PAGINATED_LIMIT);
 	
 	return new Paginator($qb, true);
-    }
-    
-    public function savePrice(Price $price): void{
-	$this->getEntityManager()->persist($price);
     }
 }
