@@ -23,9 +23,7 @@ class CustomerFormFactory {
 	$customerID = $customerForm->addHidden('customerInternalID')
 		->setHtmlId('customer-internal-id');
 	
-	$isEnabled = $customerForm->addCheckbox('isEnabled','Is enabled')
-		->setHtmlId('customer-is-enabled')
-		->setDefaultValue(true);
+	
 	
 	$identificator = $customerForm->addText('identificator','Identificator')
 		->setMaxLength(255)
@@ -41,6 +39,11 @@ class CustomerFormFactory {
 		->setRequired();
         
 	if($presenter === 'Customer'){
+	    
+	    $isEnabled = $customerForm->addCheckbox('isEnabled','Is enabled')
+		->setHtmlId('customer-is-enabled')
+		->setDefaultValue(true);
+	    
 	    $defaultPriceListInternalID = null;
 	    $priceListsForSelect = [];
 	    foreach($priceLists as $priceList){
@@ -52,6 +55,11 @@ class CustomerFormFactory {
 	    }
 	    
 	    $priceListSelect = $customerForm->addSelect('priceList','Price list', $priceListsForSelect);
+	    
+	    $note = $customerForm->addTextArea('note','Customer note')
+		->setHtmlId('customer-note')
+		->setHtmlAttribute('placeholder','Optional')
+		->setHtmlAttribute('rows',5);
 	}
 	
 	$dueDays = $customerForm->addInteger('dueDays','Invoice due days')
@@ -81,15 +89,15 @@ class CustomerFormFactory {
 		self::createDeliveryAddress($customerForm,$customer?->getCustomerDeliveryAddress(),$form,$countries);
 		$diffDeliveryAddress->setDefaultValue($customer?->getCustomerDeliveryAddress() !== null);
 		break;
+	    case 'Invoice':
+		self::createBillingAddress($customerForm, $customer?->getInvoiceCustomerBillingAddress(),$countries);
+		self::createDeliveryAddress($customerForm,$customer?->getInvoiceCustomerDeliveryAddress(),$form,$countries);
+		$diffDeliveryAddress->setDefaultValue($customer?->getInvoiceCustomerDeliveryAddress() !== null);
+		break;
 	}
 	
 	$diffDeliveryAddress->addCondition($form::Equal, true)
 		->toggle("#deliveryAddress");
-	
-        $note = $customerForm->addTextArea('note','Customer note')
-		->setHtmlId('customer-note')
-		->setHtmlAttribute('placeholder','Optional')
-		->setHtmlAttribute('rows',5);
       
         $email = $customerForm->addEmail('email','Email')
 		->setHtmlId('customer-email')

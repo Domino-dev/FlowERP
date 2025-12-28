@@ -1,10 +1,13 @@
 
 <h2>Credentials</h2>
 <div class="row">
+	{if $presenter->getName() === 'Customer'}
 	<div class="col">
             {label customer-isEnabled/}
             {input customer-isEnabled}
         </div>
+	{/if}
+    
 	{if $customer}
 	<div class="col">
             {label customer-customerInternalID/}
@@ -47,10 +50,12 @@
             {label customer-vatNumber/}
             {input customer-vatNumber}
         </div>
+	{if $presenter->getName() === 'Customer'}
         <div class="col">
             {label customer-note/}
             {input customer-note}
         </div>
+	{/if}
     </div>
 
     <h2>Billing address</h2>
