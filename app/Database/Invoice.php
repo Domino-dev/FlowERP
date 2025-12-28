@@ -35,7 +35,7 @@ class Invoice {
     
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy:"invoice")]
     #[ORM\JoinColumn(name: "customers_id", referencedColumnName: "id", nullable: true, onDelete:"CASCADE")]
-    protected Customer $customer;
+    protected ?Customer $customer = null;
     
     #[ORM\OneToOne(targetEntity: InvoiceCustomer::class, mappedBy:"invoice", cascade: ["persist", "remove"])]
     protected InvoiceCustomer $invoiceCustomer;
@@ -49,6 +49,8 @@ class Invoice {
     
     #[ORM\Column(name: "number",type:"string",length: 32)]
     protected string $number;
+    #[ORM\Column(name: 'payment_method',type:"string")]
+    protected string $paymentMethod;
     #[ORM\Column(type:"decimal", precision:10, scale: 2)]
     protected float $total;
     #[ORM\Column(name: 'total_with_vat', type:"decimal", precision:10, scale: 2)]
@@ -67,12 +69,13 @@ class Invoice {
     protected \DateTimeImmutable $created;
     
     
-    public function __construct(string $internalID, CompanyUser $companyUser, Customer $customer, ?PriceList $priceList, string $number, float $total, float $totalWithVAT, int $productsCount, float $discount, int $status, ?\DateTimeImmutable $dueDate, \DateTimeImmutable $documentDate, ?\DateTimeImmutable $created = null) {
+    public function __construct(string $internalID, CompanyUser $companyUser, ?Customer $customer, ?PriceList $priceList, string $number, string $paymentMethod, float $total, float $totalWithVAT, int $productsCount, float $discount, int $status, ?\DateTimeImmutable $dueDate, \DateTimeImmutable $documentDate, ?\DateTimeImmutable $created = null) {
 	$this->internalID = $internalID;
 	$this->companyUser = $companyUser;
 	$this->customer = $customer;
 	$this->priceList = $priceList;
 	$this->number = $number;
+	$this->paymentMethod = $paymentMethod;
 	$this->total = $total;
 	$this->totalWithVAT = $totalWithVAT;
 	$this->productsCount = $productsCount;
@@ -101,7 +104,7 @@ class Invoice {
 	return $this->companyUser;
     }
 
-    public function getCustomer(): Customer {
+    public function getCustomer(): ?Customer {
 	return $this->customer;
     }
     
@@ -121,6 +124,10 @@ class Invoice {
 	return $this->number;
     }
 
+    public function getPaymentMethod(): string {
+	return $this->paymentMethod;
+    }
+    
     public function getTotal(): float {
 	return $this->total;
     }
@@ -165,7 +172,7 @@ class Invoice {
 	$this->companyUser = $companyUser;
     }
 
-    public function setCustomer(Customer $customer): void {
+    public function setCustomer(?Customer $customer): void {
 	$this->customer = $customer;
     }
 
@@ -185,6 +192,10 @@ class Invoice {
 	$this->number = $number;
     }
 
+    public function setPaymentMethod(string $paymentMethod): void {
+	$this->paymentMethod = $paymentMethod;
+    }
+    
     public function setTotal(float $total): void {
 	$this->total = $total;
     }

@@ -1,0 +1,71 @@
+{block styles}
+
+{/block}
+{block content}
+{snippet dynamicInvoiceForm}
+{form invoiceForm}
+    {input invoiceInternalID}
+    {input customerInternalID}
+    {input isPriceListWithVAT}
+    
+    {label date/}
+    {input date}
+    {label dueDate/}
+    {input dueDate}
+    {label state/}
+    {input state}
+    
+    {label priceList/}
+    {input priceList}
+    {label paymentMethod/}
+    {input paymentMethod}
+    
+    {label customerAutocomplete/}
+    {input customerAutocomplete}
+    <div id="customer-autocomplete-suggestions"></div>
+    
+    {include '../Customer/_customer.latte'}
+    
+    <h2>Invoice items</h2>
+    
+    <div n:multiplier="multiplier" class="ajax multiplier">
+        <input n:name="productID">
+	<label n:name="catalogueCode"/>
+        <input n:name="catalogueCode">
+	<div class="product-autocomplete-suggestions"></div>
+	<label n:name="name"/>
+        <input n:name="name">
+	<label n:name="priceWithoutVAT"/>
+        <input n:name="priceWithoutVAT">
+	<label n:name="vatPercentageValue"/>
+        <input n:name="vatPercentageValue">
+	<label n:name="discount"/>
+        <input n:name="discount">
+	<label n:name="quantity"/>
+        <input n:name="quantity">
+	<br>
+	<label n:name="productPriceWithoutVAT"/>
+        <input n:name="productPriceWithoutVAT">
+	<label n:name="productPriceWithVAT"/>
+        <input n:name="productPriceWithVAT">
+	{multiplier:remove multiplier, class:'ajax multiplier-remove-button', data-naja-history: 'off'}
+    </div>
+    {multiplier:add multiplier class:'ajax multiplier-add-button', data-naja-history:'off'}
+    <div>
+	<span>Without VAT: </span><span id="invoice-total-without-vat">0</span><span class="currency-iso">{$priceListCurrencyISO}</span>
+	<br>
+	<span>With VAT: </span><span id="invoice-total-with-vat">0</span><span class="currency-iso">{$priceListCurrencyISO}</span>
+    </div>
+    {if $invoice}
+	{input editInvoice}    
+	{input deleteInvoice}    
+    {else}
+	{input submitInvoice}    
+    {/if}
+    
+{/form}
+{/snippet}
+{/block content}
+{block scripts}
+<script src="{$basePath}/scripts/invoice.js"></script>
+{/block}

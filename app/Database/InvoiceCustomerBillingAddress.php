@@ -44,6 +44,8 @@ class InvoiceCustomerBillingAddress {
 	$this->street = $street;
 	$this->city = $city;
 	$this->zip = $zip;
+	$this->country = $country;
+	$this->countryISO = $countryISO;
 	$this->lastUpdate = $lastUpdate ?? new \DateTimeImmutable();
 	$this->created = $created ?? new \DateTimeImmutable();
     }

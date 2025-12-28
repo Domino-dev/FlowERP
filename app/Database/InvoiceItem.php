@@ -52,7 +52,19 @@ class InvoiceItem {
     #[ORM\Column(type: "datetime_immutable", options: ["default" => "CURRENT_TIMESTAMP"])]
     protected \DateTimeImmutable $created;
     
-    public function __construct(string $internalID, Invoice $invoice, ?Product $product, string $catalogueCode, string $name, float $price, int $quantity, float $discount, float $VATRateValue, float $totalPrice, ?\DateTimeImmutable $created = null) {
+    public function __construct(
+	    string $internalID, 
+	    Invoice $invoice, 
+	    ?Product $product, 
+	    string $catalogueCode, 
+	    string $name, 
+	    float $price, 
+	    int $quantity, 
+	    float $discount, 
+	    float $VATRateValue, 
+	    float $totalPrice, 
+	    float $totalPriceWithVAT, 
+	    ?\DateTimeImmutable $created = null) {
 	$this->internalID = $internalID;
 	$this->invoice = $invoice;
 	$this->product = $product;
@@ -63,6 +75,7 @@ class InvoiceItem {
 	$this->discount = $discount;
 	$this->VATRateValue = $VATRateValue;
 	$this->totalPrice = $totalPrice;
+	$this->totalPriceWithVAT = $totalPriceWithVAT;
 	$this->created = $created ?? new \DateTimeImmutable();
     }
 
@@ -114,6 +127,10 @@ class InvoiceItem {
 	return $this->totalPrice;
     }
 
+    public function getTotalPriceWithVAT(): float {
+	return $this->totalPriceWithVAT;
+    }
+    
     public function getCreated(): \DateTimeImmutable {
 	return $this->created;
     }
@@ -161,7 +178,11 @@ class InvoiceItem {
     public function setTotalPrice(float $totalPrice): void {
 	$this->totalPrice = $totalPrice;
     }
-
+    
+    public function setTotalPriceWithVAT(float $totalPriceWithVAT): void {
+	$this->totalPriceWithVAT = $totalPriceWithVAT;
+    }
+    
     public function setCreated(\DateTimeImmutable $created): void {
 	$this->created = $created;
     }

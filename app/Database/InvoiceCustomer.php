@@ -31,8 +31,6 @@ class InvoiceCustomer {
     protected string $internalID;
      #[ORM\Column(type: "string",length: 255)]
     protected string $name;
-    #[ORM\Column(name: "company_name",type: "string",length: 255)]
-    protected string $companyName;
     #[ORM\Column(name: "company_number",type: "string",length: 10, nullable:true)]
     protected ?string $companyNumber;
     #[ORM\Column(name: "vat_number",type: "string",length: 14, nullable:true)]
@@ -58,10 +56,9 @@ class InvoiceCustomer {
     #[ORM\Column(type: "datetime_immutable", options: ["default" => "CURRENT_TIMESTAMP"])]
     protected \DateTimeImmutable $created; 
     
-    public function __construct(string $internalID, string $name, string $companyName, ?string $companyNumber, ?string $vatNumber, Invoice $invoice, ?string $phone, string $email, int $dueDays, ?\DateTime $lastUpdate = null, ?\DateTimeImmutable $created = null) {
+    public function __construct(string $internalID, string $name, ?string $companyNumber, ?string $vatNumber, Invoice $invoice, ?string $phone, string $email, int $dueDays, ?\DateTime $lastUpdate = null, ?\DateTimeImmutable $created = null) {
 	$this->internalID = $internalID;
 	$this->name = $name;
-	$this->companyName = $companyName;
 	$this->companyNumber = $companyNumber;
 	$this->vatNumber = $vatNumber;
 	$this->invoice = $invoice;
@@ -82,10 +79,6 @@ class InvoiceCustomer {
 
     public function getName(): string {
 	return $this->name;
-    }
-
-    public function getCompanyName(): string {
-	return $this->companyName;
     }
 
     public function getCompanyNumber(): ?string {
@@ -138,10 +131,6 @@ class InvoiceCustomer {
 
     public function setName(string $name): void {
 	$this->name = $name;
-    }
-
-    public function setCompanyName(string $companyName): void {
-	$this->companyName = $companyName;
     }
 
     public function setCompanyNumber(?string $companyNumber): void {

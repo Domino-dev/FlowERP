@@ -1,0 +1,46 @@
+{block styles}
+<link rel="stylesheet" href="{$basePath}/styles/invoice.css"/>
+{/block}
+{block content}
+
+<div class="page-content">
+    <a n:href="Invoice:detail">Create invoice</a>
+    <h1>Invoices</h1>
+    <p>Total invoices: {$invoicesCnt}</p>
+    <input type="text" id="invoices-search" placeholder="Product code, Price list, ..."/>
+    {if count($invoices) > 0}
+    <div n:snippet="invoices">
+	<div id="invoices-header">
+	    <span>Invoice number</span>
+	    <span>Customer</span>
+	    <span>Status</span>
+	    <span>created</span>
+	    <span></span>
+	</div>
+	<div id="invoices">
+	{foreach $invoices as $invoice}
+	    <div class="invoice">
+		<span>{$invoice->getNumber()}</span>
+		<span>{$invoice->getCustomer()->getName()}</span>
+		<span>{$invoice->getStatus()}</span>
+		<span>{$invoice->getCreated()->format('Y-m-d H:i:s')}</span>
+		<a n:href="Invoice:detail, 'iid' => $invoice->getInternalID()">Detail</a>
+	    </div>
+	{/foreach}
+	</div>
+	<div class="pagination">
+	    {if $page > 1}
+		<button class="invoice-page-button" data-page-number="{$page-1}">Previous</button>
+	    {/if}
+
+	    {if $page * $limit < $invoicesCnt}
+		<button class="invoice-page-button" data-page-number="{$page+1}">Next</button>
+	    {/if}
+	</div>
+    </div>
+    {/if}
+</div>
+{/block content}
+{block scripts}
+<script src="{$basePath}/scripts/invoice.js"></script>
+{/block}
