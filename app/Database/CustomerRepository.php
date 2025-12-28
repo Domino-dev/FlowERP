@@ -59,7 +59,6 @@ final class CustomerRepository extends EntityRepository
 	$customers = $this->createQueryBuilder('c')
 		->select('c')
 		->where("c.isEnabled = true AND c.name LIKE :slug OR c.identificator LIKE :slug OR c.email LIKE :slug")
-		->orwhere('c.companyName LIKE :slug')
 		->setParameter('slug', '%'.$slug.'%')
 		->orderBy("c.name",'ASC')
 		->setMaxResults($limit)

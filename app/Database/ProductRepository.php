@@ -54,4 +54,16 @@ final class ProductRepository extends EntityRepository
 	
 	return $products;
     }
+    
+    public function findByInternalIDsAndCatalogueCodes(array $internalIDs, array $catalogueCodes):?array{
+	
+	$qb = $this->createQueryBuilder('p')
+		->where('p.internalID = :internalIDs')
+		->orWhere('p.catalogueCode = :catalogueCodes')
+		->setParameter('internalIDs', $internalIDs)
+		->setParameter('catalogueCodes', $catalogueCodes)
+		->distinct();
+	
+	return $qb->getQuery()->getResult();
+    }
 }

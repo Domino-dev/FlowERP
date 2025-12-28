@@ -41,4 +41,35 @@ final class PriceRepository extends EntityRepository
 	
 	return new Paginator($qb, true);
     }
+    
+    public function findByProductID(int $productID, int $priceListID): ?Price{
+	$now = new \DateTimeImmutable();
+	
+	$qb = $this->createQueryBuilder('p')
+	    ->where('p.product = :product')
+	    ->andWhere('p.priceList = :priceList')
+	    ->andWhere('p.validFrom <= :now')
+	    ->andWhere('p.validTo >= :now')
+	    ->setParameter('product', $productID)
+	    ->setParameter('priceList', $priceListID)
+	    ->setParameter('now', $now)
+	    ->setMaxResults(1);
+	
+	return $qb->getQuery()->getOneOrNullResult();
+    }
+    
+    public function findMultipleByProductIDs(array $productID, int $priceListID): ?array{
+	$now = new \DateTimeImmutable();
+	
+	$qb = $this->createQueryBuilder('p')
+	    ->where('p.product = :product')
+	    ->andWhere('p.priceList = :priceList')
+	    ->andWhere('p.validFrom <= :now')
+	    ->andWhere('p.validTo >= :now')
+	    ->setParameter('product', $productID)
+	    ->setParameter('priceList', $priceListID)
+	    ->setParameter('now', $now);
+	
+	return $qb->getQuery()->getResult();
+    }
 }
