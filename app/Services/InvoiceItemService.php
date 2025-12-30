@@ -21,8 +21,8 @@ class InvoiceItemService {
 	$quantity = (int)$invoiceProductData['quantity'];
 	$vatRate = (float)$invoiceProductData['vatPercentageValue'];
 	$discount = (float)$invoiceProductData['discount'];
-	$totalPrice = round($price*$quantity*(1-$discount/100),2);
-	$totalPriceWithVat = round($totalPrice*(1-$vatRate/100),2);
+	$totalPrice = $this->calculateInvoiceItemTotalPrice($price,$quantity,$discount);
+	$totalPriceWithVat = $this->calculateInvoiceItemTotalPriceWithVAT($totalPrice, $vatRate);
 	
 	return new InvoiceItem(
 		    \App\Helpers\UUIDGenerator::generateInternalID(), 
@@ -37,5 +37,13 @@ class InvoiceItemService {
 		    $totalPrice,
 		    $totalPriceWithVat
 		);
+    }
+    
+    public function calculateInvoiceItemTotalPrice(float $price, int $quantity, float $discount = 0){
+	return round($price*$quantity*(1-$discount/100),2);
+    }
+    
+    public function calculateInvoiceItemTotalPriceWithVAT(float $totalPrice, float $vatRate = 0){
+	return round($totalPrice*(1+$vatRate/100),2);
     }
 }

@@ -2,9 +2,13 @@
 
 {/block}
 {block content}
+<a n:href="Invoice:default">Back</a>
+
+
 {snippet dynamicInvoiceForm}
 {form invoiceForm}
     {input invoiceInternalID}
+    {input invoiceCustomerInternalID}
     {input customerInternalID}
     {input isPriceListWithVAT}
     
@@ -29,7 +33,8 @@
     <h2>Invoice items</h2>
     
     <div n:multiplier="multiplier" class="ajax multiplier">
-        <input n:name="productID">
+        <input n:name="invoiceItemInternalID">
+        <input n:name="productInternalID">
 	<label n:name="catalogueCode"/>
         <input n:name="catalogueCode">
 	<div class="product-autocomplete-suggestions"></div>
@@ -44,17 +49,17 @@
 	<label n:name="quantity"/>
         <input n:name="quantity">
 	<br>
-	<label n:name="productPriceWithoutVAT"/>
-        <input n:name="productPriceWithoutVAT">
-	<label n:name="productPriceWithVAT"/>
-        <input n:name="productPriceWithVAT">
+	<label n:name="totalItemPriceWithoutVAT"/>
+        <input n:name="totalItemPriceWithoutVAT">
+	<label n:name="totalItemPriceWithVAT"/>
+        <input n:name="totalItemPriceWithVAT">
 	{multiplier:remove multiplier, class:'ajax multiplier-remove-button', data-naja-history: 'off'}
     </div>
     {multiplier:add multiplier class:'ajax multiplier-add-button', data-naja-history:'off'}
     <div>
-	<span>Without VAT: </span><span id="invoice-total-without-vat">0</span><span class="currency-iso">{$priceListCurrencyISO}</span>
+	<span>Without VAT: </span><span id="invoice-total-without-vat">{$invoiceTotalPriceWithoutVAT}</span><span class="currency-iso">{$priceListCurrencyISO}</span>
 	<br>
-	<span>With VAT: </span><span id="invoice-total-with-vat">0</span><span class="currency-iso">{$priceListCurrencyISO}</span>
+	<span>With VAT: </span><span id="invoice-total-with-vat">{$invoiceTotalPriceWithVAT}</span><span class="currency-iso">{$priceListCurrencyISO}</span>
     </div>
     {if $invoice}
 	{input editInvoice}    

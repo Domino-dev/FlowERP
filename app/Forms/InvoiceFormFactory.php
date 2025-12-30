@@ -25,6 +25,7 @@ class InvoiceFormFactory {
 	
 	$invoiceInternalID = $form->addHidden('invoiceInternalID')->setHtmlId('invoice-internal-id');
 	$customerInternalID = $form->addHidden('customerInternalID')->setHtmlId('customer-internal-id');
+	$invoiceCustomerInternalID = $form->addHidden('invoiceCustomerInternalID')->setHtmlId('invoice-customer-internal-id');
 	$isPriceListWithVAT = $form->addHidden('isPriceListWithVAT')->setHtmlId('is-price-list-with-vat');
 	
 	$invoiceDate = $form->addDate('date','Invoice date')->setDefaultValue(date('Y-m-d'));
@@ -46,7 +47,8 @@ class InvoiceFormFactory {
 	$form->addText('customerAutocomplete','Customer autocomplete')->setOmitted();
 	
 	$multiplier = $form->addMultiplier('multiplier', function (Container $container, Form $form) {
-	    $container->addHidden('productID',null)->setHtmlAttribute('class', 'item-internal-id');
+	    $container->addHidden('invoiceItemInternalID',null)->setHtmlAttribute('class', 'invoice-item-internal-id');
+	    $container->addHidden('productInternalID',null)->setHtmlAttribute('class', 'product-internal-id');
 	    $container->addText('catalogueCode','Catalogue code')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','item-catalogue-code');
@@ -70,15 +72,15 @@ class InvoiceFormFactory {
 		    ->setHtmlAttribute('class','item-quantity')
 		    ->setHtmlAttribute('type','number')
 		    ->setDefaultValue(1);
-	    $container->addText('productPriceWithoutVAT','Product price without VAT')
+	    $container->addText('totalItemPriceWithoutVAT','Total item price without VAT')
 		    ->setRequired()
-		    ->setHtmlAttribute('class','product-price-without-VAT-total-val')
+		    ->setHtmlAttribute('class','total-item-price-without-VAT')
 		    ->setHtmlAttribute('type','number')
 		    ->setHtmlAttribute('readonly',true)
 		    ->setDefaultValue(0);
-	    $container->addText('productPriceWithVAT','Product price with VAT')
+	    $container->addText('totalItemPriceWithVAT','Total item price with VAT')
 		    ->setRequired()
-		    ->setHtmlAttribute('class','product-price-with-VAT-total-val')
+		    ->setHtmlAttribute('class','total-item-price-with-VAT')
 		    ->setHtmlAttribute('type','number')
 		    ->setHtmlAttribute('readonly',true)
 		    ->setDefaultValue(0);
@@ -104,11 +106,17 @@ class InvoiceFormFactory {
 	    
 	    $invoiceInternalID->setDefaultValue($invoice->getInternalID());
 	    $customerInternalID->setDefaultValue($invoice->getCustomer()->getInternalID());
+	    $invoiceCustomerInternalID->setDefaultValue($invoice->getInvoiceCustomer()->getInternalID());
+	    
+	    if(!empty($invoice->getPriceList())){
+		$isPriceListWithVAT->setDefaultValue($invoice->getPriceList()->getIsWithVAT());
+	    }
 	    
 	    $priceList->setDefaultValue($priceListDefaultInternalID);
 	    $invoiceDate->setDefaultValue($invoice->getDocumentDate());
 	    $invoiceDueDate->setDefaultValue($invoice->getDueDate());
 	    $invoiceStatus->setDefaultValue($invoice->getStatus());
+	    $paymentMethod->setDefaultValue($invoice->getPaymentMethod());
 	    
 	    $multiplier->setDefaults($invoiceItems);
 	}
@@ -116,13 +124,19 @@ class InvoiceFormFactory {
     
     private static function getMultiplierItems(array|PersistentCollection $items):array{
 	$invoiceItems = [];
+	/** @var \App\Database\InvoiceItem $invoiceItem */
 	foreach($items as $invoiceItem){
 	    $invoiceItems[] = [
-		"productID" => $invoiceItem->getProduct()->getInternalID(),
-		"catalogueCode" => $invoiceItem->getCatalogueCode(),
-		"name" => $invoiceItem->getName(),
-		"value" => $invoiceItem->getPrice(),
-		"quantity" => $invoiceItem->getQuantity()
+		'invoiceItemInternalID' => $invoiceItem->getInternalID(),
+		'productInternalID' => $invoiceItem->getProduct()->getInternalID(),
+		'catalogueCode' => $invoiceItem->getCatalogueCode(),
+		'name' => $invoiceItem->getName(),
+		'priceWithoutVAT' => $invoiceItem->getPrice(),
+		'vatPercentageValue' => $invoiceItem->getVATRateValue(),
+		'discount' => $invoiceItem->getDiscount(),
+		'quantity' => $invoiceItem->getQuantity(),
+		'totalItemPriceWithoutVAT' => $invoiceItem->getTotalPrice(),
+		'totalItemPriceWithVAT' => $invoiceItem->getTotalPriceWithVAT()
 	    ];
 	}
 	

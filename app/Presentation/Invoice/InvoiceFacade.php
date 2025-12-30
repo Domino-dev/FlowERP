@@ -10,6 +10,9 @@ use App\Database\InvoiceRepository;
 use App\Database\InvoiceItemRepository;
 use App\Database\PriceListRepository;
 use App\Database\CustomerRepository;
+use App\Database\InvoiceCustomerRepository;
+use App\Database\InvoiceCustomerBillingAddressRepository;
+use App\Database\InvoiceCustomerDeliveryAddressRepository;
 use App\Database\ProductRepository;
 use App\Database\CompanyUserRepository;
 use App\Database\PriceRepository;
@@ -23,6 +26,7 @@ use App\Database\Invoice;
 use App\Database\InvoiceItem;
 use App\Database\PriceList;
 use App\Database\Customer;
+use App\Database\InvoiceCustomer;
 use App\Database\Product;
 use App\Database\CompanyUser;
 use App\Database\Price;
@@ -43,6 +47,7 @@ class InvoiceFacade{
     private InvoiceItemRepository $invoiceItemRepository;
     private PriceListRepository $priceListRepository;
     private CustomerRepository $customerRepository;
+    private InvoiceCustomerRepository $invoiceCustomerRepository;
     private ProductRepository $productRepository;
     private CompanyUserRepository $companyUserRepository;
     private PriceRepository $priceRepository;
@@ -63,6 +68,7 @@ class InvoiceFacade{
 	$this->invoiceItemRepository = $this->entityManagerInterface->getRepository(InvoiceItem::class);
 	$this->priceListRepository = $this->entityManagerInterface->getRepository(PriceList::class);
 	$this->customerRepository = $this->entityManagerInterface->getRepository(Customer::class);
+	$this->invoiceCustomerRepository = $this->entityManagerInterface->getRepository(InvoiceCustomer::class);
 	$this->productRepository = $this->entityManagerInterface->getRepository(Product::class);
 	$this->companyUserRepository = $this->entityManagerInterface->getRepository(CompanyUser::class);
 	$this->priceRepository = $this->entityManagerInterface->getRepository(Price::class);
@@ -73,7 +79,6 @@ class InvoiceFacade{
     }
     
     public function createInvoice(\stdClass $invoiceData, string $userInternalID):?string{
-	bdump($invoiceData);
 	// pricelist
 	$priceListInternalID = $invoiceData->priceList;
 	$priceList = $this->getPriceListByInternalID($priceListInternalID);
@@ -89,22 +94,6 @@ class InvoiceFacade{
 	$customerInternalID = $invoiceData->customerInternalID;
 	if(!empty($customerInternalID)){
 	    $customer = $this->customerRepository->findOneBy(['internalID' => $customerInternalID]);
-	} else {
-	    
-	    // create a customer after a check of checkbox
-	    
-	    // create customer
-	    /*$priceListInternalID = $invoiceData->priceList;
-	    $priceList = null;
-	    if(!empty($priceListInternalID)){
-		$priceList = $this->priceListRepository->findOneBy(['internalID' => $priceListInternalID]);
-	    }
-	    
-	    $customerData = $invoiceData->customer;
-	    $customer = $this->customerService->createCustomerStructure($customerData, $priceList);*/
-	    
-	    /*$this->entityManagerInterface->persist($customer);
-	    $this->entityManagerInterface->flush();*/
 	}
 	
 	// invoice creation
@@ -125,7 +114,7 @@ class InvoiceFacade{
 	$invoiceCustomerBillingAddress = $this->invoiceService->createInvoiceCustomerBillingAddressStructure($invoiceCustomerBillingAddressData, $invoiceCustomer);
 	// set
 	$invoiceCustomerBillingAddress->setInvoiceCustomer($invoiceCustomer);
-	bdump($invoiceCustomerBillingAddress);
+	
 	$invoiceCustomer->setInvoiceCustomerBillingAddress($invoiceCustomerBillingAddress);
 	
 	// invoice customer delivery address creation
@@ -156,14 +145,31 @@ class InvoiceFacade{
 	}
 	
 	$invoice->setTotal($invoiceTotal);
-
-	$this->entityManagerInterface->flush();
 	
-	return $invoice->getInternalID();
+	try{
+	    $this->entityManagerInterface->flush();
+	    return $invoice->getInternalID();
+	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
+	    // LOG
+	    throw $ex;
+	} catch (\Doctrine\DBAL\Exception $ex) {
+	    // LOG
+	} catch (Exception $ex){
+	    // LOG
+	} catch (Throwable $ex){
+	    // LOG
+	}
+	
+	return null;
     }
     
     public function getInvoice(string $invoiceInternalID): ?Invoice{
 	return $this->invoiceRepository->findOneBy(['internalID' => $invoiceInternalID]);
+    }
+    
+    public function getInvoicesCount():int{
+	
+	return $this->invoiceRepository->count();
     }
     
     public function getPage():int{
@@ -174,9 +180,9 @@ class InvoiceFacade{
 	return self::LIMIT;
     } 
    
-    public function getPaginatedInvoices(int $page, string $searchSlug):?Paginator{
+    public function getPaginatedInvoices(int $page, string $searchSlug, array $statusCode):?Paginator{
 	
-	return $this->invoiceRepository->findPaginated($page,$searchSlug);
+	return $this->invoiceRepository->findPaginated($page,$searchSlug, $statusCode);
     }
     
     public function getPriceLists():array{
@@ -294,16 +300,19 @@ class InvoiceFacade{
 	return $pricesValuesByProductInternalID;
     }
     
-    public function updateInvoice(\stdClass $invoiceData, string $userInternalID):bool{
-	
+    public function updateInvoice(\stdClass $invoiceData):bool{
+	bdump($invoiceData);
+
 	$invoiceInternalID = $invoiceData->invoiceInternalID;
 	if(empty($invoiceInternalID)){
+	    // LOG
 	    return false;
 	}
 	
 	/** @var Invoice $invoice */
 	$invoice = $this->invoiceRepository->findOneBy(['internalID' => $invoiceInternalID]);
 	if(empty($invoice)){
+	    // LOG
 	    return false;
 	}
 	
@@ -312,32 +321,32 @@ class InvoiceFacade{
 	
 	$invoice->setPriceList($priceList);
 	
-	$customerInternalIDForm = $invoiceData->customerInternalID;
-	$invoiceCustomerInternalID = $invoice->getCustomer()->getInternalID();
-	if($customerInternalIDForm !== $invoiceCustomerInternalID){
-	    $customer = $this->getCustomerData($customerInternalIDForm);
-	    if(empty($customer)){
-		// create customer
-		$customerData = $invoiceData->customer;
-		$customer = $this->customerService->createCustomerStructure($customerData, $priceList);
-	    }
-	    
-	    $invoice->setCustomer($customer);
+	$invoiceCustomerInternalID = $invoice->getInvoiceCustomer()->getInternalID();
+	if(empty($invoiceCustomerInternalID)){
+	    // LOG
+	    return false;
+	}
+	
+	$invoiceCustomer = $this->invoiceCustomerRepository->findOneBy(['internalID' => $invoiceCustomerInternalID]);
+	if(empty($invoiceCustomer)){
+	    // LOG
+	    return false;
 	}
 	
 	// invoice update
+	$invoice->setDocumentDate($invoiceData->date);
 	$invoice->setDueDate($invoiceData->dueDate);
+	$invoice->setStatus($invoiceData->state);
+	$invoice->setPaymentMethod($invoiceData->paymentMethod);
 	
 	$invoiceCustomerData = $invoiceData->customer;
-	$invoiceCustomer = $this->invoiceService->createInvoiceCustomerStructure($invoiceCustomerData, $invoice);
 	
-	$invoiceCustomer->setCompanyName($invoiceCustomerData->companyName);
-	$invoiceCustomer->setCompanyNumber($invoiceCustomerData->vatNumber);
-	$invoiceCustomer->getVatNumber($invoiceCustomerData->vatNumber);
 	$invoiceCustomer->setName($invoiceCustomerData->name);
 	$invoiceCustomer->setEmail($invoiceCustomerData->email);
 	$invoiceCustomer->setPhone($invoiceCustomerData->phone);
-	
+	$invoiceCustomer->setCompanyNumber($invoiceCustomerData->companyNumber);
+	$invoiceCustomer->getVatNumber($invoiceCustomerData->vatNumber);
+
 	// invoice customer billing address update
 	$invoiceCustomerBillingAddressDataDB = $invoice->getInvoiceCustomer()->getInvoiceCustomerBillingAddress();
 
@@ -346,68 +355,90 @@ class InvoiceFacade{
 	$invoiceCustomerBillingAddressDataDB->setStreet($invoiceCustomerBillingAddress->getStreet());
 	$invoiceCustomerBillingAddressDataDB->setCity($invoiceCustomerBillingAddress->getCity());
 	$invoiceCustomerBillingAddressDataDB->setZip($invoiceCustomerBillingAddress->getZip());
-	$invoiceCustomerBillingAddressDataDB->setInvoiceCustomer($invoiceCustomer);
-	$invoiceCustomer->setInvoiceCustomerBillingAddress($invoiceCustomerBillingAddressDataDB);
+	$invoiceCustomerBillingAddressDataDB->setCountry($invoiceCustomerBillingAddress->getCountry());
+	$invoiceCustomerBillingAddressDataDB->setCountryISO($invoiceCustomerBillingAddress->getCountryISO());
 	
 	// invoice customer delivery address update
 	$invoiceCustomerDeliveryAddress = null;
 	$invoiceCustomerDeliveryAddressData = $invoiceData->customer->customerDeliveryAddress;
 	$invoiceCustomerDeliveryAddressDataDB = $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress();
-	if(!empty($invoiceCustomerDeliveryAddressDataDB) && !empty($invoiceData->customer->customerDeliveryAddress->city)){
+	if(!empty($invoiceCustomerDeliveryAddressDataDB) && $invoiceData->isDifferentDeliveryAddress){
 	    $invoiceCustomerDeliveryAddress = $this->invoiceService->createInvoiceCustomerDeliveryAddressStructure($invoiceCustomerDeliveryAddressData, $invoiceCustomer);
 	    
 	    $invoiceCustomerDeliveryAddressDataDB->setStreet($invoiceCustomerDeliveryAddress->getStreet());
 	    $invoiceCustomerDeliveryAddressDataDB->setCity($invoiceCustomerDeliveryAddress->getCity());
 	    $invoiceCustomerDeliveryAddressDataDB->setZip($invoiceCustomerDeliveryAddress->getZip());
-	    $invoiceCustomerDeliveryAddressDataDB->setInvoiceCustomer($invoiceCustomer);
+	    $invoiceCustomerDeliveryAddressDataDB->setCountry($invoiceCustomerDeliveryAddress->getCountry());
+	    $invoiceCustomerDeliveryAddressDataDB->setCountryISO($invoiceCustomerDeliveryAddress->getCountryISO());
 	    
-	    $invoiceCustomer->setInvoiceCustomerDeliveryAddress($invoiceCustomerDeliveryAddressDataDB);
-	} else if(empty($invoiceCustomerDeliveryAddressDataDB) && !empty($invoiceData->customer->customerDeliveryAddress->city)){
+	} else if(empty($invoiceCustomerDeliveryAddressDataDB) && $invoiceData->isDifferentDeliveryAddress){
 	    $invoiceCustomerDeliveryAddress = $this->invoiceService->createInvoiceCustomerDeliveryAddressStructure($invoiceCustomerDeliveryAddressData, $invoiceCustomer);
 	    $invoiceCustomer->setInvoiceCustomerDeliveryAddress($invoiceCustomerDeliveryAddressDataDB);
-	} else if(!empty($invoiceCustomerDeliveryAddressDataDB) && empty($invoiceData->customer->customerDeliveryAddress->city)){
+	} else if(!empty($invoiceCustomerDeliveryAddressDataDB) && !$invoiceData->isDifferentDeliveryAddress){
 	    $this->entityManagerInterface->remove($invoiceCustomerDeliveryAddressDataDB);
 	}
-	
-	//bdump();
-	
-	// invoice customer update
-	
-	$invoice->setInvoiceCustomer($invoiceCustomer);
 	
 	$invoiceProducts = $invoiceData->multiplier;
 	$invoiceProductsChecked = $this->checkProductsExistence($invoiceProducts);
 	$invoiceItemsDB = $invoice->getInvoiceItems();
-	bdump($invoiceProductsChecked);
+
 	$invoiceItems = [];
+	$invoiceItemTotalPrice = 0; 
+	$invoiceItemTotalPriceWithVAT = 0; 
 	foreach($invoiceProductsChecked as $invoiceProductChecked){
 	    
 	    /** @var InvoiceItem $invoiceItemDB */
 	    foreach($invoiceItemsDB as $invoiceItemDB){
-		if($invoiceItemDB?->getProduct() !== null && $invoiceProductChecked['productID'] === $invoiceItemDB->getProduct()->getInternalID()){
-		    $invoiceItemDB->setPrice((float)$invoiceProductChecked['value']);
+		if($invoiceProductChecked['invoiceItemInternalID'] === $invoiceItemDB->getInternalID()){
+		    $invoiceItemDB->setProduct($invoiceProductChecked['product'] ?? null);
+		    $invoiceItemDB->setCatalogueCode($invoiceProductChecked['catalogueCode']);
+		    $invoiceItemDB->setName($invoiceProductChecked['name']);
+		    $invoiceItemDB->setPrice((float)$invoiceProductChecked['priceWithoutVAT']);
+		    $invoiceItemDB->setQuantity((int)$invoiceProductChecked['quantity']);
+		    $invoiceItemDB->setDiscount((float)$invoiceProductChecked['discount']);
+		    $invoiceItemDB->setVATRateValue((float)$invoiceProductChecked['vatPercentageValue']);
+		    $invoiceItemDB->setTotalPrice((float)$invoiceProductChecked['totalItemPriceWithoutVAT']);
+		    $invoiceItemDB->setTotalPriceWithVAT((float)$invoiceProductChecked['totalItemPriceWithVAT']);
 		} else {
 		    $invoiceItemDB = $invoiceItem = $this->invoiceItemService->createInvoiceItemStructure($invoiceProductChecked,$invoice);
 		}
 		
+		if(empty($invoiceItemDB)){
+		    continue;
+		}
+		
+		$invoiceItemTotalPrice += $invoiceItemDB->getTotalPrice();
+		$invoiceItemTotalPriceWithVAT += $invoiceItemDB->getTotalPriceWithVAT();
+			
 		$invoiceItems[] = $invoiceItemDB;
 	    }
 	}
 	$invoice->syncItems($invoiceItems);
 	
+	$invoice->setTotal($invoiceItemTotalPrice);
+	$invoice->setTotalWithVAT($invoiceItemTotalPriceWithVAT);
+	
 	try{
 	    $this->entityManagerInterface->flush();
-	} catch (\Doctrine\DBAL\Exception $dcEx) {
-	    // došlo k chybě při flush
-	    //echo "Flush failed: " . $dcEx->getMessage();
-	    return false;
+	    return true;
+	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
+	    // LOG
+	    throw $ex;
+	} catch (\Doctrine\DBAL\Exception $ex) {
+	    // LOG
+	} catch (Exception $ex){
+	    // LOG
+	} catch (Throwable $ex){
+	    // LOG
 	}
+	
+	return false;
     }
     
     private function checkProductsExistence(array|\Nette\Utils\ArrayHash $invoiceProducts):array{
 	$checkedProducts = [];
 	foreach($invoiceProducts as $invoiceProduct){
-	    $invoiceProductInternalID = $invoiceProduct['productID'];
+	    $invoiceProductInternalID = $invoiceProduct['productInternalID'];
 	    $catalogueCode = $invoiceProduct['catalogueCode'];
 	    
 	    $invoiceProduct['product'] = null;
@@ -415,7 +446,7 @@ class InvoiceFacade{
 		$catalogueCode = $invoiceProduct['catalogueCode'];
 		$confirmedProduct = $this->productRepository->findOneBy(['internalID' => $invoiceProductInternalID, 'catalogueCode' => $catalogueCode]);
 
-		$invoiceProduct['productID'] = isset($confirmedProduct) ? $invoiceProduct['productID'] : null;
+		$invoiceProduct['productInternalID'] = isset($confirmedProduct) ? $invoiceProduct['productInternalID'] : null;
 		$invoiceProduct['product'] = $confirmedProduct;
 	    }
 	    

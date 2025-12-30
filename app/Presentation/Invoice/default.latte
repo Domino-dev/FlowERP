@@ -7,8 +7,19 @@
     <a n:href="Invoice:detail">Create invoice</a>
     <h1>Invoices</h1>
     <p>Total invoices: {$invoicesCnt}</p>
-    <input type="text" id="invoices-search" placeholder="Product code, Price list, ..."/>
+    <input type="text" id="invoices-search" placeholder="Invoice number, customer name, ..."/>
     {if count($invoices) > 0}
+    <div>
+	<label>Draft</label>
+	<input class="invoice-status" type="checkbox" value="0"/>
+	<label>Issued</label>
+	<input class="invoice-status" type="checkbox" value="500"/>
+	<label>Paid</label>
+	<input class="invoice-status" type="checkbox" value="1000"/>
+	<label>Canceled</label>
+	<input class="invoice-status" type="checkbox" value="900"/>
+	<input hidden="true" id="invoice-selected-status"/>
+    </div>
     <div n:snippet="invoices">
 	<div id="invoices-header">
 	    <span>Invoice number</span>
@@ -22,8 +33,10 @@
 	    <div class="invoice">
 		<span>{$invoice->getNumber()}</span>
 		<span>{$invoice->getCustomer()->getName()}</span>
-		<span>{$invoice->getStatus()}</span>
-		<span>{$invoice->getCreated()->format('Y-m-d H:i:s')}</span>
+		<span>{$invoice->getTotal()}</span>
+		<span>{$invoice->getTotalWithVAT()}</span>
+		<span>{$invoice->getCreated()->format('Y-m-d')}</span>
+		<span>{$invoice->getStatusName()}</span>
 		<a n:href="Invoice:detail, 'iid' => $invoice->getInternalID()">Detail</a>
 	    </div>
 	{/foreach}

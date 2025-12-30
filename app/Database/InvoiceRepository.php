@@ -22,15 +22,20 @@ class InvoiceRepository extends EntityRepository{
      * 
      * @return Paginator
      */
-    public function findPaginated(int $page, string $searchSlug): Paginator
-    {
+    public function findPaginated(int $page, string $searchSlug, array $statusCode = []): Paginator{
 	$qb = $this->createQueryBuilder('i')
-	    ->where('i.number LIKE :searchslug')
-	    ->setParameter('searchslug', '%'.$searchSlug.'%')
-	    ->select('i')
-	    ->orderBy('i.created', 'DESC')
-	    ->setFirstResult(($page - 1) * self::FIND_PAGINATED_LIMIT)
-	    ->setMaxResults(self::FIND_PAGINATED_LIMIT);
+	    ->join('i.invoiceCustomer', 'invCust')
+	    ->where('i.number LIKE :searchslug OR invCust.name LIKE :searchslug')
+	    ->setParameter('searchslug', '%'.$searchSlug.'%');
+	    
+	if(!empty($statusCode)){
+	    $qb->andWhere('i.status IN (:statuscode)')
+		->setParameter('statuscode', $statusCode);
+	}
+	    
+	$qb->orderBy('i.created', 'DESC')
+	->setFirstResult(($page - 1) * self::FIND_PAGINATED_LIMIT)
+	->setMaxResults(self::FIND_PAGINATED_LIMIT);
 	
 	return new Paginator($qb, true);
     }

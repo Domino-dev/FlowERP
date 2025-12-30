@@ -156,8 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const productQuantityEl = multiplier.find('.item-quantity');
 	const productPriceWithoutVATEl = multiplier.find('.item-price-without-VAT');
 	const productPriceVATEl = multiplier.find('.item-vat-percentage');
-	const productPriceWithoutVATTotalEl = multiplier.find('.product-price-without-VAT-total-val');
-	const productPriceWithVATTotalEl = multiplier.find('.product-price-with-VAT-total-val');
+	const productPriceWithoutVATTotalEl = multiplier.find('.total-item-price-without-VAT');
+	const productPriceWithVATTotalEl = multiplier.find('.total-item-price-with-VAT');
 	const suggestionsEl = multiplier.find('.item-autocomplete-suggestions');
 	const autocompleteEl = multiplier.find('.item-autocomplete');
 	
@@ -227,8 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const productDiscountEl = multiplier.find('.item-discount');
 	const productQunatityEl = multiplier.find('.item-quantity');
 
-	const productPriceWithoutVATTotalEl = multiplier.find('.product-price-without-VAT-total-val');
-	const productPriceWithVATTotalEl = multiplier.find('.product-price-with-VAT-total-val');
+	const productPriceWithoutVATTotalEl = multiplier.find('.total-item-price-without-VAT');
+	const productPriceWithVATTotalEl = multiplier.find('.total-item-price-with-VAT');
 
 	const productPriceWithoutVATVal = productPriceWithoutVATEl.val();
 	const productQunatityVal = productQunatityEl.val();
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const totalWithoutVat = [...document.querySelectorAll('.multiplier')]
 	.reduce((sum, multiplier) => {
 	    const priceEl = multiplier.querySelector(
-		'.product-price-without-VAT-total-val'
+		'.total-item-price-without-VAT'
 	    );
 
 	    console.log(Number(priceEl.value));
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const totalWithVat = [...document.querySelectorAll('.multiplier')]
 	.reduce((sum, multiplier) => {
 	    const priceEl = multiplier.querySelector(
-		'.product-price-with-VAT-total-val'
+		'.total-item-price-with-VAT'
 	    );
 
 	    return sum + Number(priceEl.value);
@@ -340,4 +340,84 @@ document.addEventListener('DOMContentLoaded', () => {
 	$('#invoice-total-without-vat').html(totalWithoutVat);
 	$('#invoice-total-with-vat').html(totalWithVat);
     }
+    
+    function getStatusCodesFromURL(){
+	const url = new URL(window.location.href);
+	const statusParam = url.searchParams.get('status');
+
+	return statusParam ? statusParam.split(',') : [];
+    }
+    
+    let debounceTimeoutCustomerSearch;
+    $(document).on('keyup','#invoices-search',function(){
+	clearTimeout(debounceTimeoutCustomerSearch); 
+	debounceTimeoutCustomerSearch = setTimeout(() => {
+	    let searchSlug = $(this).val();
+	    if(searchSlug.length > 3 || searchSlug.length < 1){
+		let invoiceStatusCode = getStatusCodesFromURL();
+		let pageNumber = 1;
+		
+		naja.makeRequest('POST','?do=filterInvoices',{pageNumber:pageNumber,searchSlug:searchSlug, statusCode: invoiceStatusCode},{history:false})
+		.then((resp) => {
+
+		})
+		.catch((err) => {
+		   console.log(err); 
+		});
+	    }
+	    
+	},500);
+    });
+    
+    $(document).on('click','.invoice-page-button',function(){
+	let pageNumber = $(this).data('page-number');
+	let searchSlug = $('#customer-search').val();
+	let invoiceStatusCode = getStatusCodesFromURL();
+
+	naja.makeRequest('POST','?do=filterInvoices',{pageNumber:pageNumber,searchSlug:searchSlug, statusCode: invoiceStatusCode},{history:false})
+	.then((resp) => {
+
+	})
+	.catch((err) => {
+	   console.log(err); 
+	});
+    });
+    
+    $(document).on('click','.invoice-status',function(){
+	
+	const url = new URL(window.location.href);
+	const key = 'status';
+
+	const values = [];
+
+	$('.invoice-status:checked').each(function () {
+	    values.push($(this).val());
+	});
+
+	console.log('Status values:', values);
+
+	let pageNumber = 1;
+	let searchSlug = $('#customer-search').val();
+
+	naja.makeRequest('POST','?do=filterInvoices',
+	    {
+		pageNumber: pageNumber,
+		searchSlug: searchSlug,
+		statusCode: values
+	    },
+	    { history: false }
+	)
+	.then((resp) => {
+	    if (values.length) {
+		url.searchParams.set(key, values.join(','));
+	    } else {
+		url.searchParams.delete(key);
+	    }
+
+	    window.history.replaceState({}, '', url.toString());
+	})
+	.catch((err) => {
+	    console.log(err);
+	});
+    });
 });

@@ -28,24 +28,26 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     private array $paymentMethods = [];
     private ?string $customerIdentificator = null;
     private string $searchSlug = "";
+    private int $invoiceTotalCount = 0;
     
     private int $pageNumber = 1;
+    private array $statusCode = [];
     
     public function __construct(InvoiceFacade $invoiceFacade) {
 	$this->invoiceFacade = $invoiceFacade;
     }
     
     public function actionDefault(): void{
-	$this->invoices = $this->invoiceFacade->getPaginatedInvoices($this->pageNumber,$this->searchSlug);
+	$this->invoiceTotalCount = $this->invoiceFacade->getInvoicesCount();
     }
     
     public function renderDefault(): void{
 	
-	$invoices = $this->invoiceFacade->getPaginatedInvoices($this->pageNumber,$this->searchSlug);
-	
-	$this->template->invoices = $this->invoices;
+	$invoices = $this->invoiceFacade->getPaginatedInvoices($this->pageNumber,$this->searchSlug, $this->statusCode);
+	bdump(count($invoices));
+	$this->template->invoices = $invoices;
 	$this->template->invoicesCnt = count($invoices);
-	$this->template->invoicesTotalCnt = count($this->invoices);
+	$this->template->invoicesTotalCnt = $this->invoiceTotalCount;
 	$this->template->page = $this->invoiceFacade->getPage();
 	$this->template->limit = $this->invoiceFacade->getLimit();
     }
@@ -83,6 +85,8 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	$this->template->priceListCurrencyISO = $this->priceListCurrencyISO;
 	$this->template->priceListWithVat = $this->isPriceListWithVAT;
 	$this->template->customer = null;
+	$this->template->invoiceTotalPriceWithoutVAT = isset($this->invoice) ? $this->invoice->getTotal() : 0;
+	$this->template->invoiceTotalPriceWithVAT = isset($this->invoice) ? $this->invoice->getTotalWithVAT() : 0;
     }
     
     public function createComponentInvoiceForm(): Form{
@@ -113,8 +117,13 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     }
     
     public function invoiceFormSuccess(Form $form, \stdClass $data){
+	try{
+	    $invoiceID = $this->invoiceFacade->createInvoice($data,$this->userInternalID);
+	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
+	    // LOG
+	    throw $ex;
+	}
 	
-	$invoiceID = $this->invoiceFacade->createInvoice($data,$this->userInternalID);
 	if(empty($invoiceID)){
 	    $this->flashMessage('Cannot create the invoice!');
 	    $this->redirect('this');
@@ -125,8 +134,20 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     }
     
     public function updateInvoiceFormSuccess(Form $form, \stdClass $data){
+	try{
+	    $invoiceUpdated = $this->invoiceFacade->updateInvoice($data);
+	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
+	    // LOG
+	    throw $ex;
+	}
 	
-	$this->invoiceFacade->updateInvoice($data,$this->userInternalID);
+	if($invoiceUpdated){
+	    $this->flashMessage('Invoice has been successfully updated!');
+	    $this->redirect('this');
+	}
+	
+	$this->flashMessage('Cannot update the invoice!');
+	$this->redirect('this');
     }
     
     public function handleGetCustomerAutocompleteSuggestion($slug){
@@ -173,7 +194,6 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	$productCatalogueCodes = json_decode($productCatalogueCodesJSON, true);
 	$pricesValueByProductInternal = $this->invoiceFacade->getPrices($priceListInternalID, $productInternalIDs, $productCatalogueCodes);
 	
-	bdump($pricesValueByProductInternal);
 	$this->sendJson($pricesValueByProductInternal);
     }
 
@@ -197,18 +217,18 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	$this->redirect('Invoice:default');
     }
     
-    public function handleInvoicesSearch($searchSlug){
-	if(strlen($searchSlug) < 4 && !empty(strlen($searchSlug))){
+    public function handleFilterInvoices($pageNumber,$searchSlug){
+	$statusCode = $this->getHttpRequest()->getPost('statusCode');
+	
+	if(!empty($searchSlug) && strlen($searchSlug) < 4 && empty($statusCode)){
 	    $this->sendJson(false);
 	}
 	
-	$this->searchSlug = $searchSlug;
-	$this->redrawControl('prices');
-    }
-    
-    public function handleRedrawPageData($pageNumber, $searchSlug){
-	$this->pageNumber = $pageNumber;
-	$this->searchSlug = $searchSlug;
-	$this->redrawControl('prices');
+	bdump($statusCode);
+	
+	$this->pageNumber = (int)$pageNumber ?? 1;
+	$this->searchSlug = $searchSlug ?? "";
+	$this->statusCode = (array)$statusCode;
+	$this->redrawControl('invoices');
     }
 }

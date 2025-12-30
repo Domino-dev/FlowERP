@@ -22,6 +22,9 @@ use App\Database\InvoiceRepository;
 	)]
 )]
 class Invoice {
+    
+    CONST INVOICE_STATES = [0 => 'draft',500 => 'issued',900 => 'cancelled',1000 => 'paid'];
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
@@ -158,6 +161,11 @@ class Invoice {
 
     public function getCreated(): \DateTimeImmutable {
 	return $this->created;
+    }
+    
+    public function getStatusName(){
+	
+	return isset(self::INVOICE_STATES[$this->status]) ? self::INVOICE_STATES[$this->status] : 'uknown';
     }
 
     public function setId(int $id): void {
