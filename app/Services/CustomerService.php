@@ -43,14 +43,6 @@ class CustomerService {
     
     public function createCustomerStructure($customerDataRaw, ?PriceList $priceList = null):?Customer{
 	$internalID = UUIDGenerator::generateInternalID();
-	
-	
-	$customerData = null;
-	if(isset($customerDataRaw->formCustomerAutocomplete->masterInternalID)){
-	    /** @var Customer $customerData */
-	    $masterInternalID = $customerDataRaw->formCustomerAutocomplete->masterInternalID;
-	    $customerData = $this->customerRepository->findOneBy(['internalID' => $masterInternalID]);;
-	}
 
 	if(empty($priceList)){
 	    $priceList = null;//$this->priceListRepository?->getMainPriceList() ?? null;
@@ -146,16 +138,16 @@ class CustomerService {
 	$year = date('Y');
 	$prefix = 'CUST';
 
-	$lastIdentificator = $this->customerRepository->findLastCustomerIdentificator();
+	$lastIdentificator = $this->customerRepository->findLastCustomerIdentificator($year);
 
 	if (!empty($lastIdentificator)) {
-	    preg_match('/(\d{4})$/', $lastIdentificator, $matches);
-	    $lastNumeric = isset($matches[1]) ? (int)$matches[1] : 0;
+	    $lastPosNum = str_replace($prefix.$year,'',$lastIdentificator);
+	    $lastNumeric = (int)$lastPosNum;
 	} else {
 	    $lastNumeric = 0;
 	}
 
-	$nextNumeric = str_pad((string)($lastNumeric + 1), 6, '0', STR_PAD_LEFT);
+	$nextNumeric = $lastNumeric + 1;
 
 	return "{$prefix}{$year}{$nextNumeric}";
     }

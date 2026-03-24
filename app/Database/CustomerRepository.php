@@ -68,11 +68,11 @@ final class CustomerRepository extends EntityRepository
 	return $customers;
     }
     
-    public function findLastCustomerIdentificator():?string{
+    public function findLastCustomerIdentificator(string $year):?string{
 	$query = $this->createQueryBuilder('c');
 	
 	$customerIdentificatorRow = $query->where($query->expr()->like('c.identificator', ':prefix'))
-		->setParameter('prefix', 'CUST%')
+		->setParameter('prefix', "CUST{$year}%")
 		->orderBy('c.identificator','DESC')
 		->select('c.identificator')
 		->setMaxResults(1)

@@ -4,42 +4,44 @@
 {/block}
 {block content}
 
-<a n:href="Customer:detail">Create customer</a>
-<div class="page-content">
+<div class="data-list">
+    <a n:href="Customer:detail" class="btn btn-primary">Create customer</a>
     <h1>Customers</h1>
-
     <p>Total customers: {$customersTotalCount}</p>
-    <input type="text" id="customer-search" placeholder="Search customer"/>
+    <input type="text" class="data-list-search" placeholder="Search customer" />
     {if $customersTotalCount > 0}
     <div n:snippet="customers">
-	<span>Searched customers: {$searchedCustomersCount}</span>
-	<div id="customers-header">
-	    <span>Identity</span>
+	<span class="data-list-count">Searched customers: {$searchedCustomersCount}</span>
+	<div class="data-list-items-header">
+	    <span>Identificator</span>
 	    <span>Name</span>
-	    <span>Company name</span>
+	    <span>Company number</span>
+	    <span>Vat number</span>
 	    <span>Mail</span>
 	    <span>Billing address</span>
 	    <span></span>
 	</div>
-	<div id="customers">
+	<div class="data-list-items">
 	{foreach $customers as $customer}
-	    <div class="customer">
-		<span>{$customer->getIdentificator()}</span>
-		<span>{$customer->getName()}</span>
-		<span>{$customer->getEmail()}</span>
-		<span>{$customer->getCustomerBillingAddress()->getFullBillingAddress()|truncate:20}</span>
+	    <div class="data-list-item">
+		<span title="{$customer->getIdentificator()}">{$customer->getIdentificator()}</span>
+		<span title="{$customer->getName()}">{$customer->getName()}</span>
+		<span title="{$customer->getCompanyNumber()}">{$customer->getCompanyNumber()?: "-"}</span>
+		<span title="{$customer->getVatNumber()}">{$customer->getVatNumber()?: "-"}</span>
+		<span title="{$customer->getEmail()}">{$customer->getEmail()}</span>
+		<span title="{$customer->getCustomerBillingAddress()->getFullBillingAddress()}">{$customer->getCustomerBillingAddress()->getFullBillingAddress()}</span>
 		<a n:href="Customer:detail,'cid' => $customer->getInternalID()">Detail</a>
 	    </div>
 	{/foreach}
 	</div>
 
-	<div class="pagination">
+	<div class="data-list-pagination">
 	    {if $page > 1}
-		<button class="customer-page-button" data-page-number="{$page-1}">Previous</button>
+		<button class="data-list-pagination-page-button" data-page-number="{$page-1}">Previous</button>
 	    {/if}
 
 	    {if $page * $limit < $searchedCustomersCount}
-		<button class="customer-page-button" data-page-number="{$page+1}">Next</button>
+		<button class="data-list-pagination-page-button" data-page-number="{$page+1}">Next</button>
 	    {/if}
 	</div>
     </div>

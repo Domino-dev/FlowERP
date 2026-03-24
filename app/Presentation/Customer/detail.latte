@@ -5,24 +5,15 @@
 
 {block content}
 
-<a n:href="Customer:default">Back to list</a>
-{if !empty($customer)}
-     <h2>Customer detail</h2>
- {else}
-     <h2>Customer creation</h2>
- {/if}
-
+<a n:href="Customer:default" class="btn btn-back">Back to list</a>
 {form customerDetailForm}
-
     {include '_customer.latte'}
-
-    <div>
-        {input submitCustomer}
+    <div class="buttons">
+        {input submitCustomer, class => "btn btn-primary"}
 	{if $customer}
-	    {input deleteCustomer}
+	    {input deleteCustomer, class => "btn btn-danger"}
 	{/if}
     </div>
-
 {/form}
 
 {/block content}

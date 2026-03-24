@@ -4,6 +4,7 @@ namespace App\Presentation\Customer;
 
 use Nette\Application\UI\Form;
 
+use App\Presentation\BasePresenterFacade;
 use App\Presentation\Customer\CustomerFacade;
 
 use App\Database\Customer;
@@ -24,8 +25,9 @@ class CustomerPresenter extends \App\Presentation\BasePresenter {
     private string $searchSlug = "";
     
     public function __construct(
+	    BasePresenterFacade $basePresenterFacade,
 	    CustomerFacade $customerFacade) {
-	parent::__construct();
+	parent::__construct($basePresenterFacade);
 	$this->customerFacade = $customerFacade;
     }
     
@@ -69,7 +71,7 @@ class CustomerPresenter extends \App\Presentation\BasePresenter {
     public function createComponentCustomerDetailForm(): Form{
 	$form = new Form();
 	
-	\App\Forms\CustomerFormFactory::createCustomerForm($form,$this->getPresenter()->getName(),$this->customerIdentificator,$this->customer,$this->priceLists);
+	\App\Forms\CustomerFormFactory::createCustomerForm($form,false,$this->getPresenter()->getName(),$this->customerIdentificator,$this->customer,$this->priceLists);
 	
 	if(!empty($this->customer)){
 	    $form->addSubmit('submitCustomer','Save edit');
@@ -94,16 +96,16 @@ class CustomerPresenter extends \App\Presentation\BasePresenter {
 	try{
 	    $customerInternalID = $this->customerFacade->createCustomer($data);
 	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
-	    $this->flashMessage('The identificator has to be unique!');
+	    $this->flashMessage('Identificator has to be unique!', 'warning');
 	    $this->redirect('this');
 	}
 	
 	if(empty($customerInternalID)){
-	    $this->flashMessage('Something went wrong!');
+	    $this->flashMessage('Something went wrong!', 'warning');
 	    $this->redirect('this');
 	}
 	
-	$this->flashMessage('The customer has been created!');
+	$this->flashMessage('Customer has been created!','success');
 	$this->redirect('this',['cid' => $customerInternalID]);
     }
     
@@ -113,16 +115,16 @@ class CustomerPresenter extends \App\Presentation\BasePresenter {
 	try{
 	    $customerUpdated = $this->customerFacade->updateCustomer($data);
 	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
-	    $this->flashMessage('The identificator has to be unique!');
+	    $this->flashMessage('Identificator has to be unique!', 'warning');
 	    $this->redirect('this');
 	}
 	
 	if(!$customerUpdated){
-	    $this->flashMessage('Something went wrong!');
+	    $this->flashMessage('Something went wrong!', 'warning');
 	    $this->redirect('this');
 	}
 	
-	$this->flashMessage('The customer has been updated!');
+	$this->flashMessage('Customer has been updated!','success');
 	$this->redirect('this');
     }
     
@@ -133,13 +135,13 @@ class CustomerPresenter extends \App\Presentation\BasePresenter {
 	}
 	
 	$customerDeleted = $this->customerFacade->deleteCustomer($this->customer);
-	if($customerDeleted){
-	    $this->flashMessage('Customer has been removed!');
-	    $this->redirect('Customer:default');
+	if(!$customerDeleted){
+	    $this->flashMessage('Cannot remove the customer!', 'warning');
+	    $this->redirect('this');
 	}
 	
-	$this->flashMessage('Cannot remove the customer!');
-	$this->redirect('this');
+	$this->flashMessage('Customer has been removed!', 'success');
+	$this->redirect('Customer:default');
     }
     
     public function handleCheckIdentificatorUniqueness($identificator){

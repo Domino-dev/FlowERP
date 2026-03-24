@@ -1,0 +1,68 @@
+.invoice-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;          
+    max-width: 900px;   
+    padding: 16px;     
+}
+
+/* Všechny sekce */
+.invoice-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;    
+}
+
+/* Nadpis sekce */
+.invoice-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+/* Řádky pro vícesloupcové pole */
+.invoice-section .row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* mezera mezi sloupci */
+}
+
+/* Sloupce */
+.invoice-section .col {
+    flex: 1 1 200px; /* minimálně 200px, roztahuje se */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* mezera mezi label a input */
+}
+
+/* Label */
+.invoice-section label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+}
+
+/* Inputy a selecty */
+.invoice-section input,
+.invoice-section select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+/* Focus efekt */
+.invoice-section input:focus,
+.invoice-section select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
