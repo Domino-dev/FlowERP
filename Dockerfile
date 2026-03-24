@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Nainstaluj knihovny pro MySQL driver
+# Install libraries for MySQL driver
 RUN docker-php-ext-install pdo pdo_mysql
 
 # Set custom DocumentRoot

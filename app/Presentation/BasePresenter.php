@@ -4,10 +4,14 @@ namespace App\Presentation;
 
 use Nette\Application\UI\Presenter;
 
+use App\Presentation\BasePresenterFacade;
+
 class BasePresenter extends Presenter{
     
-    public function __construct() {
-        
+    private BasePresenterFacade $basePresenterFacade;
+    
+    public function __construct(BasePresenterFacade $basePresenterFacade) {
+        $this->basePresenterFacade = $basePresenterFacade;
     }
     
     protected function startup(): void {
@@ -21,6 +25,7 @@ class BasePresenter extends Presenter{
     public function beforeRender(): void {
 	$this->template->isCompanyUserLoggedIn = $this->user->loggedIn;
 	$this->template->todaysDate = date('jS \o\f F Y');
+	$this->template->companyInternalID = $this->basePresenterFacade->getCompanyInternalID();
     }
     
     public function handleGetIndexPageSearch(){

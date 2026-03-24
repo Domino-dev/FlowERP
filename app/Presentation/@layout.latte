@@ -3,22 +3,53 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-
 	<title>{ifset title}{include title|stripHtml} | {/ifset}Nette Web</title>
+	<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/styles/global.css"/>
 	{include styles}
-	{asset? 'main.js'}
 </head>
-
 <body>
-	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+    <div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+    <div class="app-container">
+	
+    {if $isCompanyUserLoggedIn}
+	<aside>
+	    <h1>Flow ERP</h1>
+	    <nav>
+		<a n:href="Customer:default">Customers</a>
+		<a n:href="Invoice:default">Invoice</a>
+		<a n:href="Price:default">Prices</a>
+		<a n:href="PriceList:default">Price lists</a>
+		<a n:href="Product:default">Products</a>
+		<a n:href="CompanyUser:default">Users</a>
+		<a n:href="Company:default,'cid' => $companyInternalID">Company</a>
+	    </nav>
+	    <p>&copy 2025 Dominik Štěpánek</p>
+	</aside>
 
-	{include content}
+	<div class="page-container">
+	    <header>
+		<div id="welcome-div">
+		    <h3>Welcome back!</h3>
+		    <p>Today is {$todaysDate}</p>
+		</div>
+		<a n:href="signOut!" id="sign-out">Sign out</a>
+	    </header>
+	    <main>
+
+		{include content}
+	    </main>
+	</div>
+	{else}
+	    {include content}
+	{/if}
+    </div>
 </body>
 </html>
-
 <script src="https://unpkg.com/nette-forms@3"></script>
 <script src="{$basePath}/scripts/lib/Naja.js"></script>
-<script src="{$basePath}/scripts/app.js"></script>
 <script src="{$basePath}/scripts/lib/jquery-3.7.1.min.js"></script>
+<script src="{$basePath}/scripts/app.js"></script>
 
 {include scripts}

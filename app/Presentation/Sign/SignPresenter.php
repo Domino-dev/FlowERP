@@ -4,13 +4,18 @@ namespace App\Presentation\Sign;
 
 use Nette\Application\UI\Form;
 
+use App\Presentation\BasePresenterFacade;
+
 use App\Security\Authenticator;
 
 class SignPresenter extends \App\Presentation\BasePresenter{
     
     private Authenticator $authenticator;
     
-    public function __construct(Authenticator $authenticator) {
+    public function __construct(
+	    BasePresenterFacade $basePresenterFacade,
+	    Authenticator $authenticator) {
+	parent::__construct($basePresenterFacade);
 	$this->authenticator = $authenticator;
     }
     
