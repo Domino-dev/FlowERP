@@ -135,29 +135,49 @@ class PriceFacade {
 	    return false;
 	}
 	
+	/** @var Product $product */
 	$product = $this->productRepository->findOneBy(['internalID' => $pricesDataRaw->productInternalID]);
+	if(empty($product)){
+	    return false;
+	}
 	
 	foreach($pricesDataRaw->multiplier as $priceDataRaw){
+	    if (!empty($priceDataRaw->internalID)) {
+		$incomingPriceInternalIds[] = $priceDataRaw->internalID;
+	    }
+	    
 	    $priceList = $this->priceListRepository->findOneBy(['internalID' => $priceDataRaw->priceListInternalID]);
-	    if(empty($product) || empty($priceList)){
+
+	    if(empty($priceList)){
 		return false;
 	    }
 
 	    $priceInternalID = $priceDataRaw->internalID;
-	    if(empty($priceInternalID)){
-		return false;
-	    }
 
 	    /** @var \App\Database\Price $price */
 	    $price = $this->priceRepository->findOneBy(['internalID' => $priceInternalID]);
 	    if(empty($price)){
-		return false;
+		try{
+		    $price = $this->priceService->createPriceStructure($priceDataRaw,$priceList,$product);
+		} catch (\Exception $ex) {
+		    bdump($ex->getMessage());
+		}
+		
+		$incomingPriceInternalIds[] = $price->getInternalID();
+		
+		$product->addPrice($price);
+	    } else {
+		$price->setPriceList($priceList);
+		$price->setValue((float)$priceDataRaw->value);
+		$price->setValidFrom($priceDataRaw->validFrom);
+		$price->setValidTo($priceDataRaw->validTo);
 	    }
-
-	    $price->setPriceList($priceList);
-	    $price->setValue((float)$priceDataRaw->value);
-	    $price->setValidFrom($priceDataRaw->validFrom);
-	    $price->setValidTo($priceDataRaw->validTo);
+	}
+	
+	foreach ($product->getPrice() as $existingPrice) {
+	    if ($existingPrice->getInternalID() && !in_array($existingPrice->getInternalID(), $incomingPriceInternalIds, true)) {
+		$product->removePrice($existingPrice);
+	    }
 	}
 	
 	try{
@@ -165,12 +185,16 @@ class PriceFacade {
 	    return true;
 	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $uniqueEx){
 	    // LOG
+	    bdump($uniqueEx->getMessage());
 	} catch (\Doctrine\DBAL\Exception $dcEx) {
 	    // LOG
-	} catch (Exception $ex){
+	    bdump($dcEx->getMessage());
+	} catch (\Exception $ex){
 	    // LOG
-	} catch (Throwable $th){
+	    bdump($ex->getMessage());
+	} catch (\Throwable $th){
 	    // LOG
+	    bdump($th->getMessage());
 	}
 	
 	return false;

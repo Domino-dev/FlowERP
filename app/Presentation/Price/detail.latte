@@ -3,6 +3,7 @@
 {/block}
 {block content}
 <a n:href="Price:default">Back to list</a>
+{snippet dynamicPriceForm}
 {form priceDetailForm}
 
     {if !empty($prices)}
@@ -33,9 +34,9 @@
         </div>
     </div>
 	
-    {snippet productPrices}
-    <div n:multiplier="multiplier" class="multiplier ajax">
-	 <input n:name="internalID">
+    
+    <div n:multiplier="multiplier" id="product-price-multiplier" class="multiplier ajax">
+	<input n:name="internalID">
 	<label n:name="priceListInternalID"/>
         <select n:name="priceListInternalID"></select>
 	<label n:name="value"/>
@@ -47,17 +48,16 @@
 	{multiplier:remove class:'ajax', data-naja-history: 'off'}
     </div>
     {multiplier:add multiplier class:'ajax'}
-    {/snippet}
-    <div class="mt-3">
-	
-        {input submitPrice}
+
+    <div class="buttons">
+        {input submitPrice, class => "btn btn-primary"}
 	{if !empty($prices)}
-	    {input deletePrice}
+	    {input deletePrice, class => "btn btn-danger"}
 	{/if}
     </div>
 
 {/form}
-
+{/snippet}
 {/block content}
 {block scripts}
 <script src="{$basePath}/scripts/price.js"></script>

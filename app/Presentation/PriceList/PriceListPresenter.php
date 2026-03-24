@@ -7,6 +7,7 @@ use Nette\Application\UI\Form;
 
 use App\Presentation\BasePresenter;
 
+use App\Presentation\BasePresenterFacade;
 use App\Presentation\PriceList\PriceListFacade;
 
 use App\Database\PriceList;
@@ -24,7 +25,10 @@ class PriceListPresenter extends BasePresenter{
     
     private ?Paginator $priceLists = null;
     
-    public function __construct(PriceListFacade $priceListFacade) {
+    public function __construct(
+	    BasePresenterFacade $basePresenterFacade, 
+	    PriceListFacade $priceListFacade) {
+	parent::__construct($basePresenterFacade);
 	$this->priceListFacade = $priceListFacade;
     }
     

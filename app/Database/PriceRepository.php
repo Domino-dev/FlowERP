@@ -58,15 +58,15 @@ final class PriceRepository extends EntityRepository
 	return $qb->getQuery()->getOneOrNullResult();
     }
     
-    public function findMultipleByProductIDs(array $productID, int $priceListID): ?array{
+    public function findMultipleByProductIDs(array $productIDs, int $priceListID): ?array{
 	$now = new \DateTimeImmutable();
 	
 	$qb = $this->createQueryBuilder('p')
-	    ->where('p.product = :product')
+	    ->where('p.product IN (:product)')
 	    ->andWhere('p.priceList = :priceList')
 	    ->andWhere('p.validFrom <= :now')
 	    ->andWhere('p.validTo >= :now')
-	    ->setParameter('product', $productID)
+	    ->setParameter('product', $productIDs)
 	    ->setParameter('priceList', $priceListID)
 	    ->setParameter('now', $now);
 	

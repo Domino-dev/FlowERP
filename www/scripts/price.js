@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     
     if(!$('#price-product-internal-id').val()){
-	$('#snippet--productPrices').hide();
+	$('#product-price-multiplier').hide();
     }
-    
     
     let debounceTimeoutPirceSearch;
     $(document).on('keyup','#prices-search',function(){
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	naja.makeRequest('POST','?do=redrawPageData',{pageNumber:pageNumber,searchSlug:searchSlug},{history:false})
 	.then((resp) => {
-
+	    
 	})
 	.catch((err) => {
 	   console.log(err); 
@@ -61,9 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
 	let productInternalID = $(this).data('product-internal-id');
 	
 	if(productInternalID){
-	    naja.makeRequest('POST','?do=getProductPricesData',{productInternalID: productInternalID},{history:false})
+	    naja.makeRequest('POST','?do=getProductData',{productInternalID: productInternalID},{history:false})
 	    .then((resp) => {
-		$('#price-product-internal-id').val(productInternalID);
+		if (resp.success && resp.redirect) {
+		    window.location.href = resp.redirect;
+		}
 	    })
 	    .catch((err) => {
 		alert(err);

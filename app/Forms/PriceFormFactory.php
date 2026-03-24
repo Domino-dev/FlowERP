@@ -32,7 +32,7 @@ class PriceFormFactory {
 		$defaultPriceListInternalID = $priceList->getInternalID();
 	    }
 	}
-
+	
 	$multiplier = $form->addMultiplier('multiplier', function (Container $container, Form $form) use ($priceListsForSelect) {
 	    $container->addHidden('internalID',null)->setHtmlAttribute('class', 'price-internal-id');
 	    $container->addSelect('priceListInternalID', 'Price list', $priceListsForSelect)
@@ -66,7 +66,7 @@ class PriceFormFactory {
 	
 	$multiplierPrices = self::getMultiplierPrices($prices);
 	
-	if(!empty($multiplierPrices)){
+	if(!empty($multiplierPrices) && !empty($product)){
 	    $productInternalID->setDefaultValue($product->getInternalID());
 	    $multiplier->setDefaults($multiplierPrices);
 	}

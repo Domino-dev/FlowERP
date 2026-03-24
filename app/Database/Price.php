@@ -26,7 +26,7 @@ class Price {
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'price')]
     #[ORM\JoinColumn(name: 'products_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    protected Product $product;
+    protected ?Product $product;
 
     #[ORM\ManyToOne(targetEntity: PriceList::class, inversedBy: 'price')]
     #[ORM\JoinColumn(name: 'price_lists_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
@@ -102,7 +102,7 @@ class Price {
 	$this->internalID = $internalID;
     }
 
-    public function setProduct(Product $product): void {
+    public function setProduct(?Product $product): void {
 	$this->product = $product;
     }
 

@@ -4,6 +4,7 @@ namespace App\Presentation\Price;
 
 use Nette\Application\UI\Form;
 
+use App\Presentation\BasePresenterFacade;
 use App\Presentation\Price\PriceFacade;
 
 use App\Forms\PriceFormFactory;
@@ -27,8 +28,8 @@ class PricePresenter extends \App\Presentation\BasePresenter {
     private int $pageNumber = 1;
     private int $totalPricesCount = 0;
     
-    public function __construct(PriceFacade $priceFacade) {
-	parent::__construct();
+    public function __construct(BasePresenterFacade $basePresenterFacade, PriceFacade $priceFacade) {
+	parent::__construct($basePresenterFacade);
 	
 	$this->priceFacade = $priceFacade;
     }
@@ -84,7 +85,7 @@ class PricePresenter extends \App\Presentation\BasePresenter {
 	}
 	
 	$form->onError[] = function ($form){
-	    dump($form->getErrors());
+	    bdump($form->getErrors());
 	};
 	return $form;
     }
@@ -95,36 +96,35 @@ class PricePresenter extends \App\Presentation\BasePresenter {
 	    $priceInternalID = $this->priceFacade->create($data, $form);
 	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex) {
 	    // LOG
-	    $this->flashMessage('Price with this price list and validation already exists!');
+	    $this->flashMessage('Price with this price list and validation already exists!', 'warning');
 	    $this->redirect('this');
 	}
 	
 	if(empty($priceInternalID)){
-	    $this->flashMessage('Cannot create the price!');
+	    $this->flashMessage('Cannot create the price!', 'error');
 	    $this->redirect('this');
 	}
 	
-	$this->flashMessage('The price has been created!');
+	$this->flashMessage('The price has been created!', 'success');
 	$this->redirect('this',['pid' => $priceInternalID]);
     }
     
     public function priceDetailUpdateFormSuccess(Form $form, $data){
-    
 	$priceUpdated = false;
 	try{
 	    $priceUpdated = $this->priceFacade->update($form, $data);
 	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex) {
 	    // LOG
-	    $this->flashMessage('Price with this price list and validation already exists!');
+	    $this->flashMessage('Price with this price list and validation already exists!', 'warning');
 	    $this->redirect('this');
 	}
 	
 	if(!$priceUpdated){
-	    $this->flashMessage('Cannot update the price!');
+	    $this->flashMessage('Cannot update the price!', 'error');
 	    $this->redirect('this');
 	}
 	
-	$this->flashMessage('The price has been updated!');
+	$this->flashMessage('The price has been updated!', 'success');
 	$this->redirect('this');
     }
     
@@ -137,7 +137,7 @@ class PricePresenter extends \App\Presentation\BasePresenter {
 	    $this->redirect('this');
 	}
 	
-	$this->flashMessage('The price has been deleted!');
+	$this->flashMessage('The price has been deleted!', 'success');
 	$this->redirect('Price:default');
     }
     
@@ -149,18 +149,25 @@ class PricePresenter extends \App\Presentation\BasePresenter {
 	$this->sendJson($this->priceFacade->getProductAutocomplete($slug) ?? '');
     }
     
-    public function handleGetProductPricesData(string $productInternalID){
+    public function handleGetProductData(string $productInternalID){
 	if(empty($productInternalID)){
 	    $this->sendJson(false);
 	}
 	
-	$this->prices = $this->priceFacade->getPricesByProduct($productInternalID);
-	bdump($this->prices);
+	$this->product = $this->priceFacade->getProductByInternalID($productInternalID);
+	if(empty($this->product)){
+	    $this->sendJson(false);
+	}
+	
+	$this->prices = $this->product->getPrice()->toArray();
 	if(empty($this->prices)){
 	    $this->sendJson(false);
 	}
 	
-	$this->redrawControl('productPrices');
+	$this->sendJson([
+	    'success' => true,
+	    'redirect' => $this->link('Price:detail', ['pid' => $this->product->getInternalID()]),
+	]);
     }
     
     public function handleGetPriceListData(string $priceListInternalID){
