@@ -46,7 +46,7 @@ class ProductService {
 		->addText($product->getCatalogueCode() . ' | ' . $product->getName())
 		->addAttributes([
 		    'class' => 'product-autocomplete-row',
-		    'data-product-id' => $product->getInternalID(),
+		    'data-product-internal-id' => $product->getInternalID(),
 		    'data-product-catalogue-code' => $product->getCatalogueCode(),
 		    'data-product-name' => $product->getName(),
 		]);

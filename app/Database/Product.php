@@ -18,7 +18,7 @@ class Product {
     protected int $id;
     #[ORM\Column(name: 'internal_id', type: "string", length: 36, options: ["fixed" => true ], unique: true)]
     protected string $internalID;
-    #[ORM\OneToMany(mappedBy: "product", targetEntity: Price::class, cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(mappedBy: "product", targetEntity: Price::class, cascade: ["persist", "remove"],orphanRemoval: true)]
     protected Collection $price;
     #[ORM\Column(name: "catalogue_code",type: "string", length:255, unique: true)]
     protected string $catalogueCode;
@@ -125,5 +125,19 @@ class Product {
     
     public function toArray():?array{
 	return get_object_vars($this);
+    }
+    
+    public function addPrice(Price $price): self{
+	if (!$this->price->contains($price)) {
+	    $this->price[] = $price;
+	    $price->setProduct($this);
+	}
+	
+	return $this;
+    }
+    
+    public function removePrice(Price $price): self{
+	$this->price->removeElement($price);
+	return $this;
     }
 }

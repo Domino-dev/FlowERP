@@ -4,6 +4,7 @@ namespace App\Presentation\Product;
 
 use Nette\Application\UI\Form;
 
+use App\Presentation\BasePresenterFacade;
 use App\Presentation\Product\ProductFacade;
 
 use App\Forms\ProductFormFactory;
@@ -23,8 +24,10 @@ class ProductPresenter extends \App\Presentation\BasePresenter {
     
     private int $pageNumber = 1;
     
-    public function __construct(ProductFacade $productFacade) {
-	parent::__construct();
+    public function __construct(
+	    BasePresenterFacade $basePresenterFacade,
+	    ProductFacade $productFacade) {
+	parent::__construct($basePresenterFacade);
 	
 	$this->productFacade = $productFacade;
     }
