@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	    
 	    naja.makeRequest('POST','?do=getProductData',{productInternalID:productInternalIDSuggestion,priceListInternalID:priceListInternalID},{history:false})
 	    .then((resp) => {
+		console.log(resp);
 		if(resp && resp !== null){
 		    let productPriceWithVATTotal;
 		    let productPriceWithoutVATTotal;
@@ -200,13 +201,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     let debounceQuantityChange;
-    $(document).on('change','.item-price-without-VAT,.item-quantity,.item-vat-percantage,.item-discount',function() {
+    $(document).on('change','.item-price-without-VAT,.item-quantity,.item-vat-percentage,.item-discount',function() {
+
 	const input = $(this);
 	const multiplier = input.closest('.multiplier'); // parent
 	clearTimeout(debounceQuantityChange);
 	debounceQuantityChange = setTimeout(() => {
 	    recalculateItemTotalPrice(null,multiplier);
 	},500);
+    });
+    
+    $(document).on('click','.ajax multiplier-remove-button',function(){
+	const multiplier = $('.multiplier');
+	clearTimeout(debounceQuantityChange);
+	recalculateItemTotalPrice(null,multiplier);
     });
     
     function recalculateItemTotalPrice(input, multiplier){
@@ -337,8 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	    return sum + Number(priceEl.value);
 	}, 0);
 	console.log('wtf');
-	$('#invoice-total-without-vat').html(totalWithoutVat);
-	$('#invoice-total-with-vat').html(totalWithVat);
+	$('#invoice-total-price-without-vat').html(totalWithoutVat);
+	$('#invoice-total-price-with-vat').html(totalWithVat);
     }
     
     function getStatusCodesFromURL(){

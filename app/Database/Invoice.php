@@ -47,13 +47,15 @@ class Invoice {
     #[ORM\JoinColumn(name: "price_lists_id", referencedColumnName: "id", nullable: true, onDelete:"CASCADE")]
     protected ?PriceList $priceList = null;
     
-    #[ORM\OneToMany(targetEntity: InvoiceItem::class, mappedBy:"invoice", cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(targetEntity: InvoiceItem::class, mappedBy:"invoice", cascade: ["persist", "remove"],orphanRemoval: true)]
     protected ?Collection $invoiceItems = null;
     
     #[ORM\Column(name: "number",type:"string",length: 32)]
     protected string $number;
     #[ORM\Column(name: 'payment_method',type:"string")]
     protected string $paymentMethod;
+    #[ORM\Column(name: 'delivery_method',type:"string")]
+    protected string $deliveryMethod;
     #[ORM\Column(type:"decimal", precision:10, scale: 2)]
     protected float $total;
     #[ORM\Column(name: 'total_with_vat', type:"decimal", precision:10, scale: 2)]
@@ -72,13 +74,29 @@ class Invoice {
     protected \DateTimeImmutable $created;
     
     
-    public function __construct(string $internalID, CompanyUser $companyUser, ?Customer $customer, ?PriceList $priceList, string $number, string $paymentMethod, float $total, float $totalWithVAT, int $productsCount, float $discount, int $status, ?\DateTimeImmutable $dueDate, \DateTimeImmutable $documentDate, ?\DateTimeImmutable $created = null) {
+    public function __construct(
+	    string $internalID, 
+	    CompanyUser $companyUser, 
+	    ?Customer $customer, 
+	    ?PriceList $priceList, 
+	    string $number, 
+	    string $paymentMethod, 
+	    string $deliveryMethod, 
+	    float $total, 
+	    float $totalWithVAT, 
+	    int $productsCount, 
+	    float $discount, 
+	    int $status, 
+	    ?\DateTimeImmutable $dueDate, 
+	    \DateTimeImmutable $documentDate, 
+	    ?\DateTimeImmutable $created = null) {
 	$this->internalID = $internalID;
 	$this->companyUser = $companyUser;
 	$this->customer = $customer;
 	$this->priceList = $priceList;
 	$this->number = $number;
 	$this->paymentMethod = $paymentMethod;
+	$this->deliveryMethod = $deliveryMethod;
 	$this->total = $total;
 	$this->totalWithVAT = $totalWithVAT;
 	$this->productsCount = $productsCount;
@@ -129,6 +147,10 @@ class Invoice {
 
     public function getPaymentMethod(): string {
 	return $this->paymentMethod;
+    }
+    
+    public function getDeliveryMethod(): string {
+	return $this->deliveryMethod;
     }
     
     public function getTotal(): float {
@@ -204,6 +226,10 @@ class Invoice {
 	$this->paymentMethod = $paymentMethod;
     }
     
+    public function setDeliveryMethod(string $deliveryMethod): void {
+	$this->deliveryMethod = $deliveryMethod;
+    }
+    
     public function setTotal(float $total): void {
 	$this->total = $total;
     }
@@ -243,17 +269,21 @@ class Invoice {
 	}
     }
     
+    public function removeInvoiceItem(InvoiceItem $invoiceItem){
+	$this->invoiceItems->removeElement($invoiceItem);
+    }
+    
     public function syncItems(array $newItems): void{
 	
 	foreach ($this->invoiceItems as $oldItem) {
 	    if (!in_array($oldItem, $newItems, true)) {
-		$this->removeItem($oldItem);
+		$this->removeInvoiceItem($oldItem);
 	    }
 	}
 	
 	foreach ($newItems as $item) {
 	    if (!$this->invoiceItems->contains($item)) {
-		$this->addItem($item);
+		$this->addInvoiceItem($item);
 	    }
 	}
     }

@@ -16,6 +16,7 @@ class InvoiceFormFactory {
     
     public static function createInvoiceForm(
 	    Container|Form $form, 
+	    bool $readOnly,
 	    \App\Presentation\Invoice\InvoicePresenter $presenter,
 	    ?Invoice $invoice = null, 
 	    array $paymentMethods = [],
@@ -23,14 +24,18 @@ class InvoiceFormFactory {
 	    ?string $paymentMethodDefaultInternalID = null,
 	    ?string $priceListDefaultInternalID = null){
 	
+	if(!empty($invoice) && $readOnly){
+	    
+	}
+	
 	$invoiceInternalID = $form->addHidden('invoiceInternalID')->setHtmlId('invoice-internal-id');
 	$customerInternalID = $form->addHidden('customerInternalID')->setHtmlId('customer-internal-id');
 	$invoiceCustomerInternalID = $form->addHidden('invoiceCustomerInternalID')->setHtmlId('invoice-customer-internal-id');
 	$isPriceListWithVAT = $form->addHidden('isPriceListWithVAT')->setHtmlId('is-price-list-with-vat');
 	
-	$invoiceDate = $form->addDate('date','Invoice date')->setDefaultValue(date('Y-m-d'));
-	$invoiceDueDate = $form->addDate('dueDate','Due date')->setHtmlId('invoice-due-date');
-	$invoiceStatus = $form->addSelect('state','Invocie state',self::INVOICE_STATES);
+	$invoiceDate = $form->addDate('date','Invoice date')->setDefaultValue(date('Y-m-d'))->setHtmlAttribute('readonly',$readOnly);
+	$invoiceDueDate = $form->addDate('dueDate','Due date')->setHtmlId('invoice-due-date')->setHtmlAttribute('readonly',$readOnly);
+	$invoiceStatus = $form->addSelect('state','Invocie state',self::INVOICE_STATES)->setHtmlAttribute('readonly',$readOnly);
 	
 	$priceListsForSelect = [];
 	foreach($priceLists as $priceList){
@@ -39,50 +44,64 @@ class InvoiceFormFactory {
 	    if($priceList->getIsDefault() && empty($priceListDefaultInternalID)){
 		$priceListDefaultInternalID = $priceList->getInternalID();
 	    }
+	    
+	    if($readOnly && $priceList->getInternalID() !== $priceListDefaultInternalID){
+		unset($priceListsForSelect[$priceList->getInternalID()]);
+	    }
 	}
 	
 	$priceList = $form->addSelect('priceList','Price list',$priceListsForSelect)->setHtmlId('invoice-price-list-internal-id');
 	
-	$paymentMethod = $form->addText('paymentMethod','Payment method')->setHtmlId('invoice-payment-method');
-	$form->addText('customerAutocomplete','Customer autocomplete')->setOmitted();
+	$paymentMethod = $form->addText('paymentMethod','Payment method')->setHtmlId('invoice-payment-method')->setHtmlAttribute('readonly',$readOnly);
+	$deliveryMethod = $form->addText('deliveryMethod','Delivery method')->setHtmlId('invoice-delivery-method')->setHtmlAttribute('readonly',$readOnly);
 	
-	$multiplier = $form->addMultiplier('multiplier', function (Container $container, Form $form) {
+	$form->addText('customerAutocomplete','Customer autocomplete')->setOmitted()->setHtmlAttribute('readonly',$readOnly);
+	
+	$multiplier = $form->addMultiplier('multiplier', function (Container $container, Form $form) use ($readOnly) {
 	    $container->addHidden('invoiceItemInternalID',null)->setHtmlAttribute('class', 'invoice-item-internal-id');
-	    $container->addHidden('productInternalID',null)->setHtmlAttribute('class', 'product-internal-id');
+	    $container->addHidden('productInternalID',null)->setHtmlAttribute('class', 'item-internal-id');
 	    $container->addText('catalogueCode','Catalogue code')
 		    ->setRequired()
-		    ->setHtmlAttribute('class','item-catalogue-code');
+		    ->setHtmlAttribute('class','item-catalogue-code')
+		    ->setHtmlAttribute('readonly',$readOnly);
 	    $container->addText('name','name')
 		    ->setRequired()
-		    ->setHtmlAttribute('class','item-name');
+		    ->setHtmlAttribute('class','item-name')
+		    ->setHtmlAttribute('readonly',$readOnly);
 	    $container->addText('priceWithoutVAT','Price per piece (without VAT)')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','item-price-without-VAT')
+		    ->setHtmlAttribute('readonly',$readOnly)
 		    ->setDefaultValue(0);
 	    $container->addText('vatPercentageValue','VAT')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','item-vat-percentage')
+		    ->setHtmlAttribute('readonly',$readOnly)
 		    ->setDefaultValue(0);
 	    $container->addText('discount','discount')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','item-discount')
+		    ->setHtmlAttribute('readonly',$readOnly)
 		    ->setDefaultValue(0);
 	    $container->addText('quantity','quantity')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','item-quantity')
 		    ->setHtmlAttribute('type','number')
+		    ->setHtmlAttribute('readonly',$readOnly)
 		    ->setDefaultValue(1);
 	    $container->addText('totalItemPriceWithoutVAT','Total item price without VAT')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','total-item-price-without-VAT')
 		    ->setHtmlAttribute('type','number')
 		    ->setHtmlAttribute('readonly',true)
+		    ->setHtmlAttribute('readonly',$readOnly)
 		    ->setDefaultValue(0);
 	    $container->addText('totalItemPriceWithVAT','Total item price with VAT')
 		    ->setRequired()
 		    ->setHtmlAttribute('class','total-item-price-with-VAT')
 		    ->setHtmlAttribute('type','number')
 		    ->setHtmlAttribute('readonly',true)
+		    ->setHtmlAttribute('readonly',$readOnly)
 		    ->setDefaultValue(0);
 	}, 1);
 
@@ -117,6 +136,7 @@ class InvoiceFormFactory {
 	    $invoiceDueDate->setDefaultValue($invoice->getDueDate());
 	    $invoiceStatus->setDefaultValue($invoice->getStatus());
 	    $paymentMethod->setDefaultValue($invoice->getPaymentMethod());
+	    $deliveryMethod->setDefaultValue($invoice->getDeliveryMethod());
 	    
 	    $multiplier->setDefaults($invoiceItems);
 	}
@@ -126,9 +146,10 @@ class InvoiceFormFactory {
 	$invoiceItems = [];
 	/** @var \App\Database\InvoiceItem $invoiceItem */
 	foreach($items as $invoiceItem){
+	    bdump($invoiceItem);
 	    $invoiceItems[] = [
 		'invoiceItemInternalID' => $invoiceItem->getInternalID(),
-		'productInternalID' => $invoiceItem->getProduct()->getInternalID(),
+		'productInternalID' => $invoiceItem?->getProduct()?->getInternalID()?:null,
 		'catalogueCode' => $invoiceItem->getCatalogueCode(),
 		'name' => $invoiceItem->getName(),
 		'priceWithoutVAT' => $invoiceItem->getPrice(),

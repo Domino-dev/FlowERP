@@ -1,0 +1,150 @@
+.invoice-status-group {
+  display: flex;
+  gap: 12px; 
+  flex-wrap: wrap;
+  margin: 1rem 0;
+
+  input[type="checkbox"] {
+    display: none; 
+  }
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 9999px; 
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #e2e8f0;
+    }
+  }
+
+  input:checked + label {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  }
+}
+
+/* Kontejner celého formuláře */
+.invoice-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;          
+    max-width: 900px;   
+    padding: 16px;     
+}
+
+/* Všechny sekce */
+.invoice-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;    
+}
+
+/* Nadpis sekce */
+.invoice-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+/* Řádky pro vícesloupcové pole */
+.invoice-section .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* mezera mezi sloupci */
+}
+
+/* Sloupce */
+.invoice-section .col {
+    flex: 1 1 200px; /* minimálně 200px, roztahuje se */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* mezera mezi label a input */
+}
+
+/* Label */
+.invoice-section label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+}
+
+/* Inputy a selecty */
+.invoice-section input,
+.invoice-section select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+/* Focus efekt */
+.invoice-section input:focus,
+.invoice-section select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/** ITEMS **/
+.invoice-section.invoice-items {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.invoice-section.invoice-items h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 18px;
+}
+
+/* Horizontální layout pro pole */
+.invoice-section.invoice-items .ajax.multiplier {
+    display: flex;
+    flex-wrap: wrap; /* zalamování, pokud je moc položek */
+    gap: 16px; /* horizontální a vertikální mezery mezi poli */
+}
+
+.invoice-section.invoice-items .field-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 150px; /* minimální šířka a možnost roztahování */
+}
+
+.invoice-section.invoice-items .field-group label {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.invoice-section.invoice-items .invoice-totals {
+    margin-top: 16px;
+    font-weight: 600;
+}
+
+.field-group hr{
+    border: none;
+    height: 1px;
+    background-color: #ccc;
+}

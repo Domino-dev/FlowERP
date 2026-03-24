@@ -15,6 +15,7 @@ use App\Database\InvoiceCustomerBillingAddressRepository;
 use App\Database\InvoiceCustomerDeliveryAddressRepository;
 use App\Database\ProductRepository;
 use App\Database\CompanyUserRepository;
+use App\Database\CompanyRepository;
 use App\Database\PriceRepository;
 
 use App\Services\ProductService;
@@ -29,6 +30,7 @@ use App\Database\Customer;
 use App\Database\InvoiceCustomer;
 use App\Database\Product;
 use App\Database\CompanyUser;
+use App\Database\Company;
 use App\Database\Price;
 
 /**
@@ -51,6 +53,7 @@ class InvoiceFacade{
     private ProductRepository $productRepository;
     private CompanyUserRepository $companyUserRepository;
     private PriceRepository $priceRepository;
+    private CompanyRepository $companyRepository;
     
     private ProductService $productService;
     private CustomerService $customerService;
@@ -72,6 +75,7 @@ class InvoiceFacade{
 	$this->productRepository = $this->entityManagerInterface->getRepository(Product::class);
 	$this->companyUserRepository = $this->entityManagerInterface->getRepository(CompanyUser::class);
 	$this->priceRepository = $this->entityManagerInterface->getRepository(Price::class);
+	$this->companyRepository = $this->entityManagerInterface->getRepository(Company::class);
 	$this->productService = $productService;
 	$this->customerService = $customerService;
 	$this->invoiceService = $invoiceService;
@@ -82,9 +86,6 @@ class InvoiceFacade{
 	// pricelist
 	$priceListInternalID = $invoiceData->priceList;
 	$priceList = $this->getPriceListByInternalID($priceListInternalID);
-	
-	// payment method
-	$paymentMethod = $invoiceData->paymentMethod;
 	
 	$user = $this->getUserByInternalID($userInternalID);
 	if(empty($user)){
@@ -97,7 +98,7 @@ class InvoiceFacade{
 	}
 	
 	// invoice creation
-	$invoice = $this->invoiceService->createInvoiceStructure($invoiceData, $user, $customer, $priceList, $paymentMethod);
+	$invoice = $this->invoiceService->createInvoiceStructure($invoiceData, $user, $customer, $priceList);
 	$this->entityManagerInterface->persist($invoice);
 	// set invoice and customer
 	$customer->addInvoice($invoice);
@@ -119,7 +120,7 @@ class InvoiceFacade{
 	
 	// invoice customer delivery address creation
 	$invoiceCustomerDeliveryAddress = null;
-	if($invoiceData->isDifferentDeliveryAddress){
+	if($invoiceData->customer->isDifferentDeliveryAddress){
 	    $invoiceCustomerDeliveryAddressData = $invoiceData->customer->customerDeliveryAddress;
 	    $invoiceCustomerDeliveryAddress = $this->invoiceService->createInvoiceCustomerDeliveryAddressStructure($invoiceCustomerDeliveryAddressData, $invoiceCustomer);
 	    $invoiceCustomerDeliveryAddress->setInvoiceCustomer($invoiceCustomer);
@@ -222,6 +223,10 @@ class InvoiceFacade{
 	return $customerArr;
     }
     
+    public function getCompany():?Company{
+	return $this->companyRepository->findOneBy([]);
+    }
+    
     public function getProductArrayData(string $productInternalID, string $priceListInternalID):array{
 	
 	/** @var Product $product */
@@ -239,7 +244,8 @@ class InvoiceFacade{
 	$priceListID = $priceList?->getId();
 	
 	$productPrice = $this->priceRepository->findByProductID($productID, $priceListID);
-	
+	bdump($priceListID);
+	bdump($productID);
 	$productArr = $product->toArray();
 	$productArr['priceValue'] = 0;
 	if(!empty($productPrice)){
@@ -301,7 +307,7 @@ class InvoiceFacade{
     }
     
     public function updateInvoice(\stdClass $invoiceData):bool{
-	bdump($invoiceData);
+	bdump($invoiceData, 'data');
 
 	$invoiceInternalID = $invoiceData->invoiceInternalID;
 	if(empty($invoiceInternalID)){
@@ -362,7 +368,7 @@ class InvoiceFacade{
 	$invoiceCustomerDeliveryAddress = null;
 	$invoiceCustomerDeliveryAddressData = $invoiceData->customer->customerDeliveryAddress;
 	$invoiceCustomerDeliveryAddressDataDB = $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress();
-	if(!empty($invoiceCustomerDeliveryAddressDataDB) && $invoiceData->isDifferentDeliveryAddress){
+	if(!empty($invoiceCustomerDeliveryAddressDataDB) && $invoiceData->customer->isDifferentDeliveryAddress){
 	    $invoiceCustomerDeliveryAddress = $this->invoiceService->createInvoiceCustomerDeliveryAddressStructure($invoiceCustomerDeliveryAddressData, $invoiceCustomer);
 	    
 	    $invoiceCustomerDeliveryAddressDataDB->setStreet($invoiceCustomerDeliveryAddress->getStreet());
@@ -371,48 +377,53 @@ class InvoiceFacade{
 	    $invoiceCustomerDeliveryAddressDataDB->setCountry($invoiceCustomerDeliveryAddress->getCountry());
 	    $invoiceCustomerDeliveryAddressDataDB->setCountryISO($invoiceCustomerDeliveryAddress->getCountryISO());
 	    
-	} else if(empty($invoiceCustomerDeliveryAddressDataDB) && $invoiceData->isDifferentDeliveryAddress){
+	} else if(empty($invoiceCustomerDeliveryAddressDataDB) && $invoiceData->customer->isDifferentDeliveryAddress){
 	    $invoiceCustomerDeliveryAddress = $this->invoiceService->createInvoiceCustomerDeliveryAddressStructure($invoiceCustomerDeliveryAddressData, $invoiceCustomer);
 	    $invoiceCustomer->setInvoiceCustomerDeliveryAddress($invoiceCustomerDeliveryAddressDataDB);
-	} else if(!empty($invoiceCustomerDeliveryAddressDataDB) && !$invoiceData->isDifferentDeliveryAddress){
+	} else if(!empty($invoiceCustomerDeliveryAddressDataDB) && !$invoiceData->customer->isDifferentDeliveryAddress){
 	    $this->entityManagerInterface->remove($invoiceCustomerDeliveryAddressDataDB);
 	}
 	
 	$invoiceProducts = $invoiceData->multiplier;
 	$invoiceProductsChecked = $this->checkProductsExistence($invoiceProducts);
-	$invoiceItemsDB = $invoice->getInvoiceItems();
+
+	// map DB items by internalID
+	$invoiceItemsDBMap = [];
+	foreach ($invoice->getInvoiceItems() as $item) {
+	    $invoiceItemsDBMap[$item->getInternalID()] = $item;
+	}
 
 	$invoiceItems = [];
-	$invoiceItemTotalPrice = 0; 
-	$invoiceItemTotalPriceWithVAT = 0; 
-	foreach($invoiceProductsChecked as $invoiceProductChecked){
-	    
-	    /** @var InvoiceItem $invoiceItemDB */
-	    foreach($invoiceItemsDB as $invoiceItemDB){
-		if($invoiceProductChecked['invoiceItemInternalID'] === $invoiceItemDB->getInternalID()){
-		    $invoiceItemDB->setProduct($invoiceProductChecked['product'] ?? null);
-		    $invoiceItemDB->setCatalogueCode($invoiceProductChecked['catalogueCode']);
-		    $invoiceItemDB->setName($invoiceProductChecked['name']);
-		    $invoiceItemDB->setPrice((float)$invoiceProductChecked['priceWithoutVAT']);
-		    $invoiceItemDB->setQuantity((int)$invoiceProductChecked['quantity']);
-		    $invoiceItemDB->setDiscount((float)$invoiceProductChecked['discount']);
-		    $invoiceItemDB->setVATRateValue((float)$invoiceProductChecked['vatPercentageValue']);
-		    $invoiceItemDB->setTotalPrice((float)$invoiceProductChecked['totalItemPriceWithoutVAT']);
-		    $invoiceItemDB->setTotalPriceWithVAT((float)$invoiceProductChecked['totalItemPriceWithVAT']);
-		} else {
-		    $invoiceItemDB = $invoiceItem = $this->invoiceItemService->createInvoiceItemStructure($invoiceProductChecked,$invoice);
-		}
-		
-		if(empty($invoiceItemDB)){
-		    continue;
-		}
-		
-		$invoiceItemTotalPrice += $invoiceItemDB->getTotalPrice();
-		$invoiceItemTotalPriceWithVAT += $invoiceItemDB->getTotalPriceWithVAT();
-			
-		$invoiceItems[] = $invoiceItemDB;
+	$invoiceItemTotalPrice = 0;
+	$invoiceItemTotalPriceWithVAT = 0;
+
+	foreach ($invoiceProductsChecked as $productData) {
+
+	    $internalId = $productData['invoiceItemInternalID'] ?? null;
+
+	    if ($internalId && isset($invoiceItemsDBMap[$internalId])) {
+		$invoiceItem = $invoiceItemsDBMap[$internalId]; // update
+	    } else {
+		$invoiceItem = $this->invoiceItemService->createInvoiceItemStructure($productData, $invoice); // create
 	    }
+
+	    // Nastavení hodnot
+	    $invoiceItem->setProduct($productData['product'] ?? null);
+	    $invoiceItem->setCatalogueCode($productData['catalogueCode']);
+	    $invoiceItem->setName($productData['name']);
+	    $invoiceItem->setPrice((float)$productData['priceWithoutVAT']);
+	    $invoiceItem->setQuantity((int)$productData['quantity']);
+	    $invoiceItem->setDiscount((float)$productData['discount']);
+	    $invoiceItem->setVATRateValue((float)$productData['vatPercentageValue']);
+	    $invoiceItem->setTotalPrice((float)$productData['totalItemPriceWithoutVAT']);
+	    $invoiceItem->setTotalPriceWithVAT((float)$productData['totalItemPriceWithVAT']);
+
+	    $invoiceItemTotalPrice += $invoiceItem->getTotalPrice();
+	    $invoiceItemTotalPriceWithVAT += $invoiceItem->getTotalPriceWithVAT();
+
+	    $invoiceItems[] = $invoiceItem;
 	}
+
 	$invoice->syncItems($invoiceItems);
 	
 	$invoice->setTotal($invoiceItemTotalPrice);

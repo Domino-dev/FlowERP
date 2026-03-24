@@ -5,6 +5,9 @@ namespace App\Presentation\Invoice;
 use Nette\Application\UI\Form;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
+use App\Templates\InvoicePdfFactory;
+
+use App\Presentation\BasePresenterFacade;
 use App\Presentation\Invoice\InvoiceFacade;
 
 use App\Database\Invoice;
@@ -15,15 +18,19 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     
     private InvoiceFacade $invoiceFacade;
     
+    private InvoicePdfFactory $invoicePdfFactory;
+    
     private ?Invoice $invoice = null;
     private ?InvoiceCustomer $invoiceCustomer = null;
     
     private ?Paginator $invoices;
     
     private ?bool $isPriceListWithVAT = false;
+    private bool $editingInvoice = false;
     private ?string $priceListCurrencyISO = null;
     private ?string $priceListInternalID = null;
     private string $userInternalID;
+    private ?string $invoiceInternalID;
     private array $priceListsForSelect = [];
     private array $paymentMethods = [];
     private ?string $customerIdentificator = null;
@@ -33,8 +40,14 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     private int $pageNumber = 1;
     private array $statusCode = [];
     
-    public function __construct(InvoiceFacade $invoiceFacade) {
+    public function __construct(
+	    BasePresenterFacade $basePresenterFacade,
+	    InvoiceFacade $invoiceFacade, 
+	    InvoicePdfFactory $invoicePdfFactory) {
+	parent::__construct($basePresenterFacade);
+	
 	$this->invoiceFacade = $invoiceFacade;
+	$this->invoicePdfFactory = $invoicePdfFactory;
     }
     
     public function actionDefault(): void{
@@ -44,7 +57,6 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     public function renderDefault(): void{
 	
 	$invoices = $this->invoiceFacade->getPaginatedInvoices($this->pageNumber,$this->searchSlug, $this->statusCode);
-	bdump(count($invoices));
 	$this->template->invoices = $invoices;
 	$this->template->invoicesCnt = count($invoices);
 	$this->template->invoicesTotalCnt = $this->invoiceTotalCount;
@@ -52,8 +64,10 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	$this->template->limit = $this->invoiceFacade->getLimit();
     }
     
-    public function actionDetail($iid): void{
+    public function actionDetail($iid, $open): void{
 	$this->userInternalID = $this->user->getId();
+	
+	$this->invoiceInternalID = $iid;
 	
 	$invoiceInternalID = $iid;
 	if(!empty($invoiceInternalID)){
@@ -64,6 +78,8 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	    
 	    $this->customerIdentificator = $customer->getIdentificator();
 	}
+	
+	$this->editingInvoice = !empty($open) || empty($this->invoice);
 	
 	$this->priceListsForSelect = $this->invoiceFacade->getPriceLists();
 	
@@ -80,8 +96,26 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	}
     }
     
-    public function renderDetail(): void{
+    public function actionPdf(string $iid): void{
+	$invoice = $this->invoiceFacade->getInvoice($iid);
+	if(empty($invoice)){
+	    return ;
+	}
+	
+	$company = $this->invoiceFacade->getCompany();
+	
+	$pdf = $this->invoicePdfFactory->createInvoice($invoice,$company);
+
+	$this->getHttpResponse()->setContentType('application/pdf');
+	echo $pdf->Output('S');
+
+	$this->terminate();
+    }
+    
+    public function renderDetail($iid, $open): void{
+	$this->template->invoiceInternalID = $this->invoiceInternalID;
 	$this->template->invoice = $this->invoice;
+	$this->template->editingInvoice = $this->editingInvoice;
 	$this->template->priceListCurrencyISO = $this->priceListCurrencyISO;
 	$this->template->priceListWithVat = $this->isPriceListWithVAT;
 	$this->template->customer = null;
@@ -92,16 +126,20 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
     public function createComponentInvoiceForm(): Form{
 	$form = new Form();
 	
-	\App\Forms\InvoiceFormFactory::createInvoiceForm($form,$this->getPresenter(), $this->invoice, $this->paymentMethods,$this->priceListsForSelect, null, $this->priceListInternalID);
-	\App\Forms\CustomerFormFactory::createCustomerForm($form,$this->getPresenter()->getName(),$this->customerIdentificator,$this->invoiceCustomer, $this->priceListsForSelect, false);
+	$readOnly = !$this->editingInvoice;
+	
+	\App\Forms\InvoiceFormFactory::createInvoiceForm($form,$readOnly,$this->getPresenter(), $this->invoice, $this->paymentMethods,$this->priceListsForSelect, null, $this->priceListInternalID);
+	\App\Forms\CustomerFormFactory::createCustomerForm($form,$readOnly,$this->getPresenter()->getName(),$this->customerIdentificator,$this->invoiceCustomer, $this->priceListsForSelect, false);
 	
 	if(empty($this->invoice)){
 	    $form->addSubmit('submitInvoice', 'Save invoice');
 	    $form->onSuccess[] = [$this,'invoiceFormSuccess'];
-	} else {
-	    $form->addSubmit('editInvoice', 'Edit invoice');
+	} else if($this->editingInvoice){
+	    $form->addSubmit('editInvoice', 'Save invoice');
 	    $form->onSuccess[] = [$this,'updateInvoiceFormSuccess'];
-	    $form->addSubmit('deleteInvoice', 'Delete')->setHtmlAttribute('id','delete-invoice')->onClick[] = [$this, 'deleteInvoice'];
+	    $form->addSubmit('deleteInvoice', 'Cancel edits')->setHtmlAttribute('id','delete-invoice')->onClick[] = [$this, 'cancelInvoice'];
+	} else if(!$this->editingInvoice){
+	    $form->addSubmit('deleteInvoice', 'Delete Invoice')->setHtmlAttribute('id','delete-invoice')->onClick[] = [$this, 'deleteInvoice'];
 	}
 	
 	$form->onError[] = function ($form) {
@@ -146,8 +184,10 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	    $this->redirect('this');
 	}
 	
+	$invoiceInternalID = $data->invoiceInternalID;
+	
 	$this->flashMessage('Cannot update the invoice!');
-	$this->redirect('this');
+	$this->redirect('this',['iid' => $invoiceInternalID, 'open' => false]);
     }
     
     public function handleGetCustomerAutocompleteSuggestion($slug){
@@ -204,6 +244,10 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	}
 	
 	$this->sendJson($this->invoiceFacade->getPriceListByInternalID($priceListInternalID,true));
+    }
+    
+    public function cancelInvoice(){
+	$this->redirect('Invoice:detail',['iid' => $this->invoiceInternalID]);
     }
     
     public function deleteInvoice(){

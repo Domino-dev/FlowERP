@@ -3,51 +3,58 @@
 {/block}
 {block content}
 
-<div class="page-content">
-    <a n:href="Invoice:detail">Create invoice</a>
+<div class="data-list">
+    <a n:href="Invoice:detail"  class="btn btn-primary">Create invoice</a>
     <h1>Invoices</h1>
-    <p>Total invoices: {$invoicesCnt}</p>
-    <input type="text" id="invoices-search" placeholder="Invoice number, customer name, ..."/>
+    <p>Total invoices: {$invoicesTotalCnt}</p>
+    <input type="text" class="data-list-search" id="invoices-search" placeholder="Invoice number, customer name, ..."/>
     {if count($invoices) > 0}
-    <div>
-	<label>Draft</label>
-	<input class="invoice-status" type="checkbox" value="0"/>
-	<label>Issued</label>
-	<input class="invoice-status" type="checkbox" value="500"/>
-	<label>Paid</label>
-	<input class="invoice-status" type="checkbox" value="1000"/>
-	<label>Canceled</label>
-	<input class="invoice-status" type="checkbox" value="900"/>
-	<input hidden="true" id="invoice-selected-status"/>
+    <div class="invoice-status-group">
+	<input type="checkbox" class="invoice-status" id="status-draft" value="0" hidden>
+	<label for="status-draft">Draft</label>
+
+	<input type="checkbox" class="invoice-status" id="status-issued" value="500" hidden>
+	<label for="status-issued">Issued</label>
+
+	<input type="checkbox" class="invoice-status" id="status-paid" value="1000" hidden>
+	<label for="status-paid">Paid</label>
+
+	<input type="checkbox" class="invoice-status" id="status-canceled" value="900" hidden>
+	<label for="status-canceled">Canceled</label>
+
+	<input type="hidden" id="invoice-selected-status">
     </div>
     <div n:snippet="invoices">
-	<div id="invoices-header">
+	<span class="data-list-count">Searched invocies: {$invoicesCnt}</span>
+	<div class="data-list-items-header">
 	    <span>Invoice number</span>
 	    <span>Customer</span>
+	    <span>Total</span>
+	    <span>Total with VAT</span>
 	    <span>Status</span>
-	    <span>created</span>
+	    <span>Created</span>
 	    <span></span>
 	</div>
-	<div id="invoices">
+	<div class="data-list-items">
 	{foreach $invoices as $invoice}
-	    <div class="invoice">
+	    <div class="data-list-item">
 		<span>{$invoice->getNumber()}</span>
 		<span>{$invoice->getCustomer()->getName()}</span>
 		<span>{$invoice->getTotal()}</span>
 		<span>{$invoice->getTotalWithVAT()}</span>
-		<span>{$invoice->getCreated()->format('Y-m-d')}</span>
 		<span>{$invoice->getStatusName()}</span>
+		<span>{$invoice->getCreated()->format('Y-m-d')}</span>
 		<a n:href="Invoice:detail, 'iid' => $invoice->getInternalID()">Detail</a>
 	    </div>
 	{/foreach}
 	</div>
-	<div class="pagination">
+	<div class="data-list-pagination">
 	    {if $page > 1}
-		<button class="invoice-page-button" data-page-number="{$page-1}">Previous</button>
+		<button class="data-list-pagination-page-button" data-page-number="{$page-1}">Previous</button>
 	    {/if}
 
 	    {if $page * $limit < $invoicesCnt}
-		<button class="invoice-page-button" data-page-number="{$page+1}">Next</button>
+		<button class="data-list-pagination-page-button" data-page-number="{$page+1}">Next</button>
 	    {/if}
 	</div>
     </div>

@@ -43,7 +43,7 @@ class InvoiceService {
     
     public function createInvoiceStructure(\stdClass $invoiceData,CompanyUser $user, ?Customer $customer, PriceList $priceList,string $paymentMethod): Invoice{
 	
-	$number = $this->createInvoiceNumber();
+	$number = $this->generateInvoiceNumber();
 	
 	$invoiceSumAndCnt = $this->getInvoiceItemsSumAndCnt($invoiceData->multiplier);
 	
@@ -53,7 +53,8 @@ class InvoiceService {
 		$customer, 
 		$priceList,
 		$number, 
-		$paymentMethod,
+		$invoiceData->paymentMethod,
+		$invoiceData->deliveryMethod,
 		$invoiceSumAndCnt['sumWithoutVAT'], 
 		$invoiceSumAndCnt['sumWithVAT'], 
 		$invoiceSumAndCnt['cnt'],  
@@ -117,28 +118,26 @@ class InvoiceService {
     }
     
     
-    private function createInvoiceNumber(): string{
+    private function generateInvoiceNumber(): string{
 	$year = date('Y');
 	$month = date('m');
 	$prefix = 'INV';
 
 	// Get the last invoice (ordered descending by number)
 	$lastInvoice = $this->invoiceRepository->findBy([], ['number' => 'DESC'], 1);
-
 	if (!empty($lastInvoice)) {
-	    $lastNumber = $lastInvoice->getNumber(); // Assuming an object with getNumber()
-	    // Extract the numeric sequence at the end
-	    preg_match('/(\d+)$/', $lastNumber, $matches);
-	    $lastNumeric = isset($matches[1]) ? (int)$matches[1] : 0;
+	    $lastInvoiceNumber = $lastInvoice->getNumber(); 
+	    $lastNumericNumber = str_replace("{$prefix}{$year}{$month}", '', $lastInvoiceNumber);
+	    $lastNumeric = (int)$lastNumericNumber;
 	} else {
 	    $lastNumeric = 0;
 	}
 
 	// Increment and pad the new number
-	$nextNumeric = str_pad((string)($lastNumeric + 1), 6, '0', STR_PAD_LEFT);
+	$nextNumeric = $lastNumeric + 1;
 
 	// Construct new invoice number
-	return "{$prefix}-{$year}-{$month}-{$nextNumeric}";
+	return "{$prefix}{$year}{$month}{$nextNumeric}";
     }
     
     public function getInvoiceItemsSumAndCnt(array|\Nette\Utils\ArrayHash $invoiceItems): array{

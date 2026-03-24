@@ -1,72 +1,137 @@
 {block styles}
-
+<link rel="stylesheet" href="{$basePath}/styles/invoice.css"/>
 {/block}
 {block content}
-<a n:href="Invoice:default">Back</a>
 
 
 {snippet dynamicInvoiceForm}
-{form invoiceForm}
-    {input invoiceInternalID}
-    {input invoiceCustomerInternalID}
-    {input customerInternalID}
-    {input isPriceListWithVAT}
+{form invoiceForm, class => "invoice-form-container"}
     
-    {label date/}
-    {input date}
-    {label dueDate/}
-    {input dueDate}
-    {label state/}
-    {input state}
+    <div class="buttons">
+	<a n:href="Invoice:default" class="btn btn-back">Back</a>
+    {if (!empty($invoiceInternalID) && !$editingInvoice)}
+	<a n:href="Invoice:pdf, 'iid' => $invoiceInternalID" class="btn btn-orange" target="_blank">Generate PDF</a>
+    {/if}
     
-    {label priceList/}
-    {input priceList}
-    {label paymentMethod/}
-    {input paymentMethod}
-    
-    {label customerAutocomplete/}
-    {input customerAutocomplete}
-    <div id="customer-autocomplete-suggestions"></div>
+    {if (!$editingInvoice && !empty($invoice))}
+	<a n:href="Invoice:detail, 'iid' => $invoiceInternalID, 'open' => true" class="btn btn-primary">Open Invoice</a>
+    {/if}
+    </div>
+    <div class="invoice-section credentials">
+	<h3>Credentials</h3>
+
+	{input invoiceInternalID}
+	{input invoiceCustomerInternalID}
+	{input customerInternalID}
+	{input isPriceListWithVAT}
+	<div class="row">
+	    <div class="col">
+		{label date/}
+		{input date}
+	    </div>
+
+	    <div class="col">
+		{label dueDate/}
+		{input dueDate}
+	    </div>
+
+	    <div class="col">
+		{label state/}
+		{input state}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col">
+		{label priceList/}
+		{input priceList}
+	    </div>
+
+	    <div class="col">
+		{label paymentMethod/}
+		{input paymentMethod}
+	    </div>
+	    
+	    <div class="col">
+		{label deliveryMethod/}
+		{input deliveryMethod}
+	    </div>
+	</div>
+    </div>
     
     {include '../Customer/_customer.latte'}
     
-    <h2>Invoice items</h2>
-    
+<div class="invoice-section invoice-items">
+    <h3>Invoice items</h3>
+
     <div n:multiplier="multiplier" class="ajax multiplier">
         <input n:name="invoiceItemInternalID">
         <input n:name="productInternalID">
-	<label n:name="catalogueCode"/>
-        <input n:name="catalogueCode">
-	<div class="product-autocomplete-suggestions"></div>
-	<label n:name="name"/>
-        <input n:name="name">
-	<label n:name="priceWithoutVAT"/>
-        <input n:name="priceWithoutVAT">
-	<label n:name="vatPercentageValue"/>
-        <input n:name="vatPercentageValue">
-	<label n:name="discount"/>
-        <input n:name="discount">
-	<label n:name="quantity"/>
-        <input n:name="quantity">
-	<br>
-	<label n:name="totalItemPriceWithoutVAT"/>
-        <input n:name="totalItemPriceWithoutVAT">
-	<label n:name="totalItemPriceWithVAT"/>
-        <input n:name="totalItemPriceWithVAT">
-	{multiplier:remove multiplier, class:'ajax multiplier-remove-button', data-naja-history: 'off'}
+
+        <div class="field-group">
+            <label n:name="catalogueCode">Catalogue code</label>
+            <input n:name="catalogueCode">
+	    <div class="product-autocomplete-suggestions"></div>
+        </div>
+	
+        <div class="field-group">
+            <label n:name="name">Product name</label>
+            <input n:name="name">
+        </div>
+
+        <div class="field-group">
+            <label n:name="priceWithoutVAT">Price (without VAT)</label>
+            <input n:name="priceWithoutVAT">
+        </div>
+
+        <div class="field-group">
+            <label n:name="vatPercentageValue">VAT %</label>
+            <input n:name="vatPercentageValue">
+        </div>
+
+        <div class="field-group">
+            <label n:name="discount">Discount</label>
+            <input n:name="discount">
+        </div>
+
+        <div class="field-group">
+            <label n:name="quantity">Quantity</label>
+            <input n:name="quantity">
+        </div>
+
+        <div class="field-group">
+            <label n:name="totalItemPriceWithoutVAT">Total (without VAT)</label>
+            <input n:name="totalItemPriceWithoutVAT">
+        </div>
+
+        <div class="field-group">
+            <label n:name="totalItemPriceWithVAT">Total (with VAT)</label>
+            <input n:name="totalItemPriceWithVAT">
+        </div>
+	{if ($editingInvoice)}
+	    {multiplier:remove multiplier, class:'ajax multiplier-remove-button', data-naja-history: 'off'}
+	{/if}
+	<div class="field-group">
+	    <div>
+		<hr>
+	    </div>
+	</div>
     </div>
-    {multiplier:add multiplier class:'ajax multiplier-add-button', data-naja-history:'off'}
-    <div>
-	<span>Without VAT: </span><span id="invoice-total-without-vat">{$invoiceTotalPriceWithoutVAT}</span><span class="currency-iso">{$priceListCurrencyISO}</span>
-	<br>
-	<span>With VAT: </span><span id="invoice-total-with-vat">{$invoiceTotalPriceWithVAT}</span><span class="currency-iso">{$priceListCurrencyISO}</span>
-    </div>
-    {if $invoice}
-	{input editInvoice}    
-	{input deleteInvoice}    
-    {else}
-	{input submitInvoice}    
+    {if ($editingInvoice)}
+	{multiplier:add multiplier class:'ajax multiplier-add-button', data-naja-history:'off'}
     {/if}
+    </div>
+    <h2>Without VAT: <span id="invoice-total-price-without-vat">{$invoiceTotalPriceWithoutVAT}</span> {$priceListCurrencyISO} <br>With VAT: <span id="invoice-total-price-with-vat">{$invoiceTotalPriceWithVAT}</span> {$priceListCurrencyISO}</h2>
+
+    <div class="buttons">
+    {if $invoice}
+	{if ($editingInvoice)}
+	    {input editInvoice, class => "btn btn-primary"}  
+	{/if}
+        {input deleteInvoice, class => "btn btn-danger"}    
+    {else}
+        {input submitInvoice, class => "btn btn-primary"}    
+    {/if}
+    </div>
     
 {/form}
 {/snippet}
