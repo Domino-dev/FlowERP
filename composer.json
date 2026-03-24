@@ -30,7 +30,9 @@
 		"nettrine/extra": "^0.2.0@dev",
 		"ramsey/uuid": "^4.9",
 		"contributte/forms-multiplier": "^4.0",
-		"nettrine/fixtures": "^0.8.0"
+		"nettrine/fixtures": "^0.8.0",
+		"fpdf/fpdf": "^1.86",
+		"mgrn/tfpdf": "^1.0"
 	},
 	"require-dev": {
 		"nette/tester": "^2.5",
