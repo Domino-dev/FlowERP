@@ -1,0 +1,72 @@
+{block styles}
+    <link rel="stylesheet" href="{$basePath}/styles/company.css"/>
+{/block}
+{block content}
+
+<div class="page-content" id="company-section">
+    {form companyForm}
+    <div class="section">
+	<div class="row">
+	    <div class="col">
+		{label name/}
+		{input name}
+	    </div>
+	    <div class="col">
+		{label phone/}
+		{input phone}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col">
+		{label email/}
+		{input email}
+	    </div>
+	    <div class="col">
+		{label webDomain/}
+		{input webDomain}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col">
+		{label companyNumber/}
+		{input companyNumber}
+	    </div>
+	    <div class="col">
+		{label vatNumber/}
+		{input vatNumber}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col">
+		{label bankNumber/}
+		{input bankNumber}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col">
+		{label street/}
+		{input street}
+	    </div>
+	    <div class="col">
+		{label city/}
+		{input city}
+	    </div>
+	    <div class="col">
+		{label zip/}
+		{input zip}
+	    </div>
+	    <div class="col">
+		{label country/}
+		{input country}
+	    </div>
+	</div>
+    </div>
+    <div class="buttons">
+	{input submitCompany, class => "btn btn-primary"}  
+    </div>
+    {/form}
+</div>
+{/block content}
+{block scripts}
+    <script src="{$basePath}/scripts/company.js"></script>
+{/block}

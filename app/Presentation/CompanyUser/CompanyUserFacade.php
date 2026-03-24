@@ -92,7 +92,7 @@ class CompanyUserFacade {
 	    $this->entityManagerInterface->flush();
 	    return $companyUser->getInternalID();
 	} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $ex){
-	    throw $ex;
+	    // LOG
 	} catch (\Doctrine\DBAL\Exception $ex) {
 	    // LOG
 	} catch (Exception $ex){

@@ -6,6 +6,7 @@ use Nette\Application\UI\Form;
 
 use App\Presentation\BasePresenter;
 
+use App\Presentation\BasePresenterFacade;
 use App\Presentation\CompanyUser\CompanyUserFacade;
 
 use App\Database\CompanyUser;
@@ -21,7 +22,10 @@ class CompanyUserPresenter extends BasePresenter{
     
     private int $pageNumber = 1;
     
-    public function __construct(CompanyUserFacade $companyUserFacade) {
+    public function __construct(
+	    BasePresenterFacade $basePresenterFacade, 
+	    CompanyUserFacade $companyUserFacade) {
+	parent::__construct($basePresenterFacade);
 	$this->companyUserFacade = $companyUserFacade;
     }
     
