@@ -3,334 +3,439 @@ declare(strict_types=1);
 namespace App\Templates;
 
 use App\Database\Invoice;
+use App\Database\InvoiceItem;
 use App\Database\Company;
 
+use App\Templates\InvoicePdf;
+
 final class InvoicePdfFactory{
-    
-    
-    public function createInvoice(Invoice $invoice, ?Company $company): \tFPDF {
-	/** @var \App\Database\Invoice $invoice */
-        $pdf = new \tFPDF;
-        $pdf->AddPage();
-        //$pdf->Image('logo',10,12,25,0);
-        $pdf->SetFont('Helvetica', '', 14);
-	$pdf->SetTextColor(100,100,100);
 
-	$pdf->SetFont('Helvetica', 'B', 24);
-	$pdf->SetTextColor(50,50,50);
-	$pdf->Cell(0,16,'INVOICE - '.$invoice->getNumber(),0,1);
+    CONST FONT = InvoicePdf::FONT;
+    CONST MARGIN = 15;
+    CONST CONTENT_WIDTH = 180;
+    CONST BOTTOM_LIMIT = 25;
 
-	/* dates */
+    // colors - slate palette + app blue
+    CONST COLOR_TEXT = [30, 41, 59];
+    CONST COLOR_MUTED = [100, 116, 139];
+    CONST COLOR_LIGHT = [148, 163, 184];
+    CONST COLOR_BORDER = [226, 232, 240];
+    CONST COLOR_BACKGROUND = [248, 250, 252];
+    CONST COLOR_ACCENT = [37, 99, 235];
+    CONST COLOR_WHITE = [255, 255, 255];
 
-	$pdf->SetFont('Helvetica','B',12);
-	$pdf->SetTextColor(50,50,50);
-	$pdf->Cell(50,5,'Invoice date:',0,0);
+    // items table columns: title, width, align
+    CONST ITEM_COLUMNS = [
+	['Code', 22, 'L'],
+	['Description', 46, 'L'],
+	['Qty', 12, 'R'],
+	['Unit price', 24, 'R'],
+	['Discount', 16, 'R'],
+	['VAT', 12, 'R'],
+	['Excl. VAT', 24, 'R'],
+	['Incl. VAT', 24, 'R'],
+    ];
 
-	$pdf->SetFont('Helvetica','',12);
-	$pdf->SetTextColor(75,75,75);
-	$pdf->Cell(40,5,$invoice->getDocumentDate()->format('d. m. Y'),0,0);
+    public function createInvoice(Invoice $invoice, ?Company $company): InvoicePdf {
 
-	$pdf->Cell(10,5,'',0,0);
+	$pdf = new InvoicePdf('P', 'mm', 'A4');
+	// unicode fonts (tFPDF core fonts do not support UTF-8)
+	$pdf->AddFont(self::FONT, '', 'DejaVuSansCondensed.ttf', true);
+	$pdf->AddFont(self::FONT, 'B', 'DejaVuSansCondensed-Bold.ttf', true);
 
-	$pdf->SetFont('Helvetica','B',12);
-	$pdf->SetTextColor(50,50,50);
+	$pdf->SetTitle('Invoice ' . $invoice->getNumber(), true);
+	$pdf->SetAuthor($company?->getName() ?? '', true);
+	$pdf->SetMargins(self::MARGIN, self::MARGIN, self::MARGIN);
+	$pdf->SetAutoPageBreak(true, self::BOTTOM_LIMIT);
+	$pdf->AliasNbPages();
+	$pdf->setFooterText(implode('  ·  ', array_filter([$company?->getName(), $company?->getWebDomain(), $company?->getEmail()])));
+	$pdf->AddPage();
 
-	$pdf->SetFont('Helvetica','',12);
-	$pdf->SetTextColor(75,75,75);
-	$pdf->Cell(40,5,'',0,1,'R');
+	$currency = $invoice->getPriceList()?->getCurrency() ?? '';
 
+	$this->drawHeader($pdf, $invoice, $company);
+	$this->drawMeta($pdf, $invoice);
+	$this->drawParties($pdf, $invoice, $company);
+	$this->drawItems($pdf, $invoice, $currency);
+	$this->drawSummary($pdf, $invoice, $currency);
+	$this->drawPaymentDetails($pdf, $invoice, $company, $currency);
 
-	$pdf->SetFont('Helvetica','B',12);
-	$pdf->SetTextColor(50,50,50);
-	$pdf->Cell(50,5,$invoice->getDueDate() instanceof \DateTimeImmutable
-		? 'Due date: '
-		: '',0,0);
+	return $pdf;
+    }
 
-	$pdf->SetFont('Helvetica','',12);
-	$pdf->SetTextColor(75,75,75);
-	$pdf->Cell(40,5,
-	    $invoice->getDueDate() instanceof \DateTimeImmutable
-		? $invoice->getDueDate()->format('d. m. Y')
-		: null,
-	0,0);
+    private function drawHeader(InvoicePdf $pdf, Invoice $invoice, ?Company $company): void{
+	// accent stripe
+	$this->setFillColor($pdf, self::COLOR_ACCENT);
+	$pdf->Rect(0, 0, $pdf->GetPageWidth(), 3, 'F');
 
-	$pdf->Cell(10,5,'',0,0);
+	$yStart = self::MARGIN;
 
-	$pdf->SetFont('Helvetica','B',12);
-	$pdf->SetTextColor(50,50,50);
+	// supplier name
+	$pdf->SetXY(self::MARGIN, $yStart);
+	$pdf->SetFont(self::FONT, 'B', 15);
+	$this->setTextColor($pdf, self::COLOR_TEXT);
+	$pdf->Cell(110, 8, $company?->getName() ?? '', 0, 2);
+	$pdf->SetFont(self::FONT, '', 9);
+	$this->setTextColor($pdf, self::COLOR_MUTED);
+	$pdf->Cell(110, 5, $company?->getWebDomain() ?? '', 0, 0);
 
-	$pdf->SetFont('Helvetica','',12);
-	$pdf->SetTextColor(75,75,75);
-	$pdf->Cell(40,5,'',0,1,'R');
+	// title + number
+	$pdf->SetXY(self::MARGIN + 110, $yStart);
+	$pdf->SetFont(self::FONT, 'B', 22);
+	$this->setTextColor($pdf, self::COLOR_ACCENT);
+	$pdf->Cell(70, 10, 'INVOICE', 0, 2, 'R');
+	$pdf->SetFont(self::FONT, '', 10);
+	$this->setTextColor($pdf, self::COLOR_MUTED);
+	$pdf->Cell(70, 5, 'No. ' . $invoice->getNumber(), 0, 0, 'R');
 
-	$pdf->Cell(0,5,'',0,1);
+	$pdf->SetY($yStart + 22);
+    }
 
-	/* ADDRESS BLOCK */
+    private function drawMeta(InvoicePdf $pdf, Invoice $invoice): void{
+	$meta = [
+	    'Issue date' => $invoice->getDocumentDate()->format('d. m. Y'),
+	    'Due date' => $invoice->getDueDate()?->format('d. m. Y') ?? '–',
+	    'Payment method' => $invoice->getPaymentMethod() ?: '–',
+	    'Variable symbol' => $this->getVariableSymbol($invoice),
+	];
 
-	$colWidth = 60;
-	$gap = 5;
-	$lineHeight = 4; // výška řádku pro MultiCell
-
-	$pdf->SetFont('Helvetica','B',10);
-	$pdf->SetTextColor(50,50,50);
-
-	// Nadpisy
-	$pdf->Cell($colWidth,5,'From:',0,0);
-	$pdf->Cell($gap,5,'',0,0);
-	$pdf->Cell($colWidth,5,'Invoice address:',0,0);
-	$pdf->Cell($gap,5,'',0,0);
-	$pdf->Cell($colWidth,5, $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress() ? 'Delivery address:' : '',0,1);
-
-	$pdf->SetFont('Helvetica','',10);
-	$pdf->SetTextColor(125,125,125);
-
-	/* --- ROW 1: Name --- */
+	$gap = 4;
+	$boxWidth = (self::CONTENT_WIDTH - $gap * (count($meta) - 1)) / count($meta);
 	$yStart = $pdf->GetY();
-	$xFrom = $pdf->GetX();
-	$xInvoice = $xFrom + $colWidth + $gap;
-	$xDelivery = $xInvoice + $colWidth + $gap;
+	$x = self::MARGIN;
 
-	// From
-	$pdf->MultiCell($colWidth, $lineHeight, $company?->getName() ?? '', 0, 'L');
+	foreach($meta as $label => $value){
+	    $this->setFillColor($pdf, self::COLOR_BACKGROUND);
+	    $pdf->Rect($x, $yStart, $boxWidth, 15, 'F');
 
-	// Invoice
-	$pdf->SetXY($xInvoice, $yStart);
-	$pdf->MultiCell($colWidth, $lineHeight, $invoice->getInvoiceCustomer()->getName(), 0, 'L');
+	    $pdf->SetXY($x + 4, $yStart + 2.5);
+	    $pdf->SetFont(self::FONT, '', 7);
+	    $this->setTextColor($pdf, self::COLOR_MUTED);
+	    $pdf->Cell($boxWidth - 8, 4, mb_strtoupper($label), 0, 2);
+	    $pdf->SetFont(self::FONT, 'B', 10);
+	    $this->setTextColor($pdf, self::COLOR_TEXT);
+	    $pdf->Cell($boxWidth - 8, 6, $value, 0, 0);
 
-	// Delivery
-	$pdf->SetXY($xDelivery, $yStart);
-	$pdf->MultiCell(
-	    $colWidth,
-	    $lineHeight,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()
-		? $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()->getName()
-		: '',
-	0, 'L');
+	    $x += $boxWidth + $gap;
+	}
 
-	// posun pod nejvyšší MultiCell
-	$pdf->SetY($yStart + max(
-	    ceil($pdf->GetStringWidth($company?->getName() ?? '') / $colWidth) * $lineHeight,
-	    ceil($pdf->GetStringWidth($invoice->getInvoiceCustomer()->getName()) / $colWidth) * $lineHeight,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()
-		? ceil($pdf->GetStringWidth($invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()->getName()) / $colWidth) * $lineHeight
-		: 0
-	));
+	$pdf->SetY($yStart + 15 + 8);
+    }
 
-	/* --- ROW 2: Street --- */
+    private function drawParties(InvoicePdf $pdf, Invoice $invoice, ?Company $company): void{
+	$invoiceCustomer = $invoice->getInvoiceCustomer();
+	$billingAddress = $invoiceCustomer->getInvoiceCustomerBillingAddress();
+	$deliveryAddress = $invoiceCustomer->getInvoiceCustomerDeliveryAddress();
+
+	$parties = [];
+	$parties[] = [
+	    'title' => 'Supplier',
+	    'name' => $company?->getName() ?? '',
+	    'address' => [$company?->getStreet(), trim(($company?->getZip() ?? '') . ' ' . ($company?->getCity() ?? '')), $company?->getCountryISO()],
+	    'details' => [
+		'Company no.' => $company?->getCompanyNumber(),
+		'VAT no.' => $company?->getVatNumber(),
+		'Phone' => $company?->getPhone(),
+		'Email' => $company?->getEmail(),
+	    ],
+	];
+	$parties[] = [
+	    'title' => 'Customer',
+	    'name' => $invoiceCustomer->getName(),
+	    'address' => [$billingAddress?->getStreet(), trim($billingAddress?->getZip() . ' ' . $billingAddress?->getCity()), $billingAddress?->getCountry()],
+	    'details' => [
+		'Company no.' => $invoiceCustomer->getCompanyNumber(),
+		'VAT no.' => $invoiceCustomer->getVatNumber(),
+		'Phone' => $invoiceCustomer->getPhone(),
+		'Email' => $invoiceCustomer->getEmail(),
+	    ],
+	];
+	if(!empty($deliveryAddress)){
+	    $parties[] = [
+		'title' => 'Delivery address',
+		'name' => $invoiceCustomer->getName(),
+		'address' => [$deliveryAddress->getStreet(), trim($deliveryAddress->getZip() . ' ' . $deliveryAddress->getCity()), $deliveryAddress->getCountry()],
+		'details' => [],
+	    ];
+	}
+
+	$gap = 8;
+	$columnWidth = (self::CONTENT_WIDTH - $gap * (count($parties) - 1)) / count($parties);
 	$yStart = $pdf->GetY();
+	$yEnd = $yStart;
+	$x = self::MARGIN;
 
-	// From street
-	$pdf->SetXY($xFrom, $yStart);
-	$pdf->MultiCell($colWidth, $lineHeight, $company?->getStreet() ?? '', 0, 'L');
+	foreach($parties as $party){
+	    $pdf->SetXY($x, $yStart);
 
-	// Invoice street
-	$pdf->SetXY($xInvoice, $yStart);
-	$pdf->MultiCell(
-	    $colWidth,
-	    $lineHeight,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerBillingAddress()->getStreet(),
-	0, 'L');
+	    // title with underline
+	    $pdf->SetFont(self::FONT, 'B', 7);
+	    $this->setTextColor($pdf, self::COLOR_ACCENT);
+	    $pdf->Cell($columnWidth, 5, mb_strtoupper($party['title']), 0, 2);
+	    $this->setDrawColor($pdf, self::COLOR_BORDER);
+	    $pdf->Line($x, $pdf->GetY(), $x + $columnWidth, $pdf->GetY());
+	    $pdf->SetXY($x, $pdf->GetY() + 2);
 
-	// Delivery street
-	$pdf->SetXY($xDelivery, $yStart);
-	$pdf->MultiCell(
-	    $colWidth,
-	    $lineHeight,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()
-		? $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()->getStreet()
-		: '',
-	0, 'L');
+	    $pdf->SetFont(self::FONT, 'B', 10);
+	    $this->setTextColor($pdf, self::COLOR_TEXT);
+	    $pdf->MultiCell($columnWidth, 5, $party['name'], 0, 'L');
 
-	// posun pod nejvyšší blok
-	$pdf->SetY($yStart + max(
-	    ceil($pdf->GetStringWidth($company?->getStreet() ?? '') / $colWidth) * $lineHeight,
-	    ceil($pdf->GetStringWidth($invoice->getInvoiceCustomer()->getInvoiceCustomerBillingAddress()->getStreet()) / $colWidth) * $lineHeight,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()
-		? ceil($pdf->GetStringWidth($invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()->getStreet()) / $colWidth) * $lineHeight
-		: 0
-	));
+	    $pdf->SetFont(self::FONT, '', 9);
+	    foreach(array_filter($party['address']) as $addressLine){
+		$pdf->SetX($x);
+		$pdf->MultiCell($columnWidth, 4.5, $addressLine, 0, 'L');
+	    }
 
-	/* --- ROW 3: City --- */
-	$pdf->Cell($colWidth,4,$company?->getCity() ?? '',0,0);
-	$pdf->Cell($gap,4,'',0,0);
-	$pdf->Cell($colWidth,4,$invoice->getInvoiceCustomer()->getInvoiceCustomerBillingAddress()->getCity(),0,0);
-	$pdf->Cell($gap,4,'',0,0);
-	$pdf->Cell(
-	    $colWidth,
-	    4,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()
-		? $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()->getCity()
-		: '',
-	0,1);
+	    $details = array_filter($party['details']);
+	    if(!empty($details)){
+		$pdf->SetY($pdf->GetY() + 2);
+		$pdf->SetFont(self::FONT, '', 8);
+		foreach($details as $label => $value){
+		    $pdf->SetX($x);
+		    $this->setTextColor($pdf, self::COLOR_MUTED);
+		    $pdf->Cell(20, 4, $label, 0, 0);
+		    $this->setTextColor($pdf, self::COLOR_TEXT);
+		    $pdf->Cell($columnWidth - 20, 4, $value, 0, 1);
+		}
+	    }
 
-	/* --- ROW 4: ZIP --- */
-	$pdf->Cell($colWidth,4,$company?->getZip() ?? '',0,0);
-	$pdf->Cell($gap,4,'',0,0);
-	$pdf->Cell($colWidth,4,$invoice->getInvoiceCustomer()->getInvoiceCustomerBillingAddress()->getZip(),0,0);
-	$pdf->Cell($gap,4,'',0,0);
-	$pdf->Cell(
-	    $colWidth,
-	    4,
-	    $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()
-		? $invoice->getInvoiceCustomer()->getInvoiceCustomerDeliveryAddress()->getZip()
-		: '',
-	0,1);
+	    $yEnd = max($yEnd, $pdf->GetY());
+	    $x += $columnWidth + $gap;
+	}
 
-	$pdf->Cell(0,5,'',0,1);
+	$pdf->SetY($yEnd + 10);
+    }
 
-	/* CONTACT BLOCK */
-	$pdf->SetFont('Helvetica','',8);
+    private function drawItems(InvoicePdf $pdf, Invoice $invoice, string $currency): void{
+	$pdf->SetFont(self::FONT, '', 7);
+	$this->setTextColor($pdf, self::COLOR_LIGHT);
+	$pdf->Cell(self::CONTENT_WIDTH, 4, 'All amounts in ' . $currency, 0, 1, 'R');
 
-	$leftCol = 60;
-	$middleGap = 5;
-	$rightCol = 60;
+	$this->drawItemsHeader($pdf);
 
-	// Company number row
-	$pdf->Cell($leftCol,3,'Company no: '.$company?->getCompanyNumber() ?? '',0,0);
-	$pdf->Cell($middleGap,3,'',0,0);
-	$pdf->Cell($rightCol,3,!empty($invoice->getInvoiceCustomer()->getCompanyNumber()) ? 'Company no: ' . $invoice->getInvoiceCustomer()->getCompanyNumber() : '',0,1);
-	
-	// VAT row
-	$pdf->Cell($leftCol,3,'VAT no: '.$company?->getVatNumber() ?? '',0,0);
-	$pdf->Cell($middleGap,3,'',0,0);
-	$pdf->Cell($rightCol,3,!empty($invoice->getInvoiceCustomer()->getVatNumber()) ? 'VAT no: ' . $invoice->getInvoiceCustomer()->getVatNumber() : '',0,1);
+	$lineHeight = 4.5;
+	$padding = 2;
+	$rowIndex = 0;
+	/** @var InvoiceItem $invoiceItem */
+	foreach($invoice->getInvoiceItems() as $invoiceItem){
+	    $pdf->SetFont(self::FONT, '', 8);
 
-	// Tel row
-	$pdf->Cell($leftCol,3,'Tel: '.$company?->getPhone() ?? '',0,0);
-	$pdf->Cell($middleGap,3,'',0,0);
-	$pdf->Cell($rightCol,3,'Tel: ' . $invoice->getInvoiceCustomer()->getPhone(),0,1);
+	    $values = [
+		$invoiceItem->getCatalogueCode(),
+		$invoiceItem->getName(),
+		(string)$invoiceItem->getQuantity(),
+		$this->formatMoney((float)$invoiceItem->getPrice()),
+		(float)$invoiceItem->getDiscount() > 0 ? $this->formatNumber((float)$invoiceItem->getDiscount()) . ' %' : '–',
+		$this->formatNumber((float)$invoiceItem->getVATRateValue()) . ' %',
+		$this->formatMoney((float)$invoiceItem->getTotalPrice()),
+		$this->formatMoney((float)$invoiceItem->getTotalPriceWithVAT()),
+	    ];
 
-	// Email row
-	$pdf->Cell($leftCol,3,'mail: '.$company?->getEmail() ?? '',0,0);
-	$pdf->Cell($middleGap,3,'',0,0);
-	$pdf->Cell($rightCol,3,'mail: ' . $invoice->getInvoiceCustomer()->getEmail(),0,1);
+	    // row height according to the longest wrapped text
+	    $linesCount = 1;
+	    foreach(self::ITEM_COLUMNS as $index => [$title, $width, $align]){
+		$linesCount = max($linesCount, $this->getLinesCount($pdf, $width, $values[$index]));
+	    }
+	    $rowHeight = $linesCount * $lineHeight + $padding * 2;
 
-	$pdf->Cell(0,6,'',0,1);
-	
-	$pdf->Cell($leftCol,3,'',0,0);
-	$pdf->Cell($middleGap,3,'',0,0);
-	$pdf->Cell($rightCol,3,'Payment method: ' . $invoice->getPaymentMethod(),0,1);
+	    // page break with repeated header
+	    if($pdf->GetY() + $rowHeight > $pdf->GetPageHeight() - self::BOTTOM_LIMIT){
+		$pdf->AddPage();
+		$this->drawItemsHeader($pdf);
+		$pdf->SetFont(self::FONT, '', 8);
+	    }
 
-	$pdf->Cell(0,6,'',0,1);
-        
-        /*if(!empty($invoice['formNote']['invoiceNote'])) {
-            $pdf->Cell(0,5,'Note: ',0,1);
-            $pdf->Cell(0,3,'',0,1);
-        }
-        
-        $pdf->SetFont('Helvetica','B',10);
-        $pdf->SetTextColor(50,50,50);
-        $pdf->SetFillColor(200,200,200);
-        if(empty($invoice['title'])) {
-            $pdf->Cell(0,10,' Invoice articles',0,1,'',true);
-        } else {
-            $pdf->Cell(0,10,' ' . $invoice['title'],0,1,'',true);
-        }*/
-        $pdf->Cell(0,3,'',0,1);
-        
-        $pdf->SetFillColor(255,255,255);
-	$pdf->SetTextColor(125,125,125);
-	$pdf->SetFont('Helvetica','B',8);
-
-	/* Header */
-	$pdf->Cell(20,8,'Cat. code','B',0);
-	$pdf->Cell(40,8,'Name','B',0);
-	$pdf->Cell(15,8,'Price','B',0,'R');
-	$pdf->Cell(10,8,'VAT','B',0,'R');
-	$pdf->Cell(15,8,'Discount','B',0,'R');
-	$pdf->Cell(15,8,'Quantity','B',0,'R');
-	$pdf->Cell(37,8,'Total w/o VAT','B',0,'R');
-	$pdf->Cell(37,8,'Total with VAT','B',1,'R');
-
-	/* Items */
-	foreach ($invoice->getInvoiceItems() as $invoiceItem) {
-
-	    $pdf->SetFont('Helvetica','',7);
-
-	    $xStart = $pdf->GetX();
 	    $yStart = $pdf->GetY();
 
-	    // výška řádku podle názvu
-	    $nameWidth = 40;
-	    $lineHeight = 4;
+	    // zebra background + bottom border
+	    if($rowIndex % 2 === 1){
+		$this->setFillColor($pdf, self::COLOR_BACKGROUND);
+		$pdf->Rect(self::MARGIN, $yStart, self::CONTENT_WIDTH, $rowHeight, 'F');
+	    }
+	    $this->setDrawColor($pdf, self::COLOR_BORDER);
+	    $pdf->Line(self::MARGIN, $yStart + $rowHeight, self::MARGIN + self::CONTENT_WIDTH, $yStart + $rowHeight);
 
-	    $name = $invoiceItem->getName();
-	    $nbLines = max(1, ceil($pdf->GetStringWidth($name) / $nameWidth));
-	    $rowHeight = $nbLines * $lineHeight;
+	    $x = self::MARGIN;
+	    foreach(self::ITEM_COLUMNS as $index => [$title, $width, $align]){
+		$this->setTextColor($pdf, $index === 1 || $index === 7 ? self::COLOR_TEXT : self::COLOR_MUTED);
+		$pdf->SetFont(self::FONT, $index === 7 ? 'B' : '', 8);
+		$pdf->SetXY($x, $yStart + $padding);
+		$pdf->MultiCell($width, $lineHeight, $values[$index], 0, $align);
+		$x += $width;
+	    }
 
-	    /* Cat code */
-	    $pdf->Cell(20,$rowHeight,$invoiceItem->getCatalogueCode(),0,0);
-
-	    /* Name */
-	    $xCurrent = $pdf->GetX();
-	    $yCurrent = $pdf->GetY();
-
-	    $pdf->MultiCell($nameWidth,$lineHeight,$name,0,'L');
-
-	    $pdf->SetXY($xCurrent + $nameWidth,$yCurrent);
-
-	    /* Price */
-	    $pdf->Cell(15,$rowHeight,
-		number_format($invoiceItem->getPrice(),2,'.',' ') . ' ' .
-		$invoice->getPriceList()->getCurrency(),
-		0,0,'R'
-	    );
-
-	    /* VAT */
-	    $pdf->Cell(10,$rowHeight,$invoiceItem->getVATRateValue(),0,0,'R');
-
-	    /* Discount */
-	    $pdf->Cell(15,$rowHeight,$invoiceItem->getDiscount(),0,0,'R');
-
-	    /* Quantity */
-	    $pdf->Cell(15,$rowHeight,$invoiceItem->getQuantity(),0,0,'R');
-
-	    /* Total without VAT */
-	    $pdf->Cell(37,$rowHeight,number_format($invoiceItem->getTotalPrice(),2,'.',' ') . ' ' .
-		$invoice->getPriceList()->getCurrency(),0,0,'R');
-
-	    /* Total with VAT */
-	    $pdf->Cell(37,$rowHeight,number_format($invoiceItem->getTotalPriceWithVAT(),2,'.',' ') . ' ' .
-		$invoice->getPriceList()->getCurrency(),0,1,'R');
+	    $pdf->SetY($yStart + $rowHeight);
+	    $rowIndex++;
 	}
-        
-        
-        /* Summary */
-        $pdf->Cell(0,14,'',0,1);
-        $pdf->SetTextColor(125,125,125);
-        $pdf->SetFont('Helvetica','',8);
-        $pdf->Cell(90,5,'Account details:',0,1);
-        
-        
-        $pdf->SetTextColor(125,125,125);
-        $pdf->SetFont('Helvetica','',8);
-        $pdf->Cell(90,5,$company?->getName() ?? '',0,0);
-        $pdf->Cell(10,5,'',0,0);
-        $pdf->SetTextColor(50,50,50);
-        $pdf->SetFont('Helvetica','B',10);
-        $pdf->Cell(40,5,'TOTAL ex VAT',0,0);
-        $pdf->Cell(10,5,'',0,0);
-	
-        $pdf->Cell(40,5,number_format(floatval($invoice->getTotal()),2,"."," ").' '.$invoice->getPriceList()->getCurrency(),0,1,'R');
-        
-        
-        $pdf->SetTextColor(125,125,125);
-        $pdf->SetFont('Helvetica','',8);
-        $pdf->Cell(90,5,'Account no: '.$company?->getBankNumber() ?? '',0,0);
-        
-        $pdf->SetTextColor(125,125,125);
-        $pdf->SetFont('Helvetica','',8);
-        $pdf->Cell(10,5,'',0,0);
-        $pdf->SetTextColor(50,50,50);
-        $pdf->SetFont('Helvetica','B',10);
-        $pdf->Cell(40,5,'TOTAL inc. VAT',0,0);
-        $pdf->Cell(10,5,'',0,0);
-        $pdf->Cell(40,5,number_format(floatval($invoice->getTotalWithVAT()),2,"."," ").' '.$invoice->getPriceList()->getCurrency(),0,1,'R');
-	
-	$pdf->SetTextColor(125,125,125);
-        $pdf->SetFont('Helvetica','',8);
-        $pdf->Cell(90,5,'Variable symbol or memo: '.$invoice->getNumber(),0,1);
-	
-        return $pdf;
+
+	$pdf->SetY($pdf->GetY() + 8);
+    }
+
+    private function drawItemsHeader(InvoicePdf $pdf): void{
+	$this->setFillColor($pdf, self::COLOR_TEXT);
+	$this->setTextColor($pdf, self::COLOR_WHITE);
+	$pdf->SetFont(self::FONT, 'B', 7.5);
+
+	foreach(self::ITEM_COLUMNS as [$title, $width, $align]){
+	    $pdf->Cell($width, 8, $title, 0, 0, $align, true);
+	}
+	$pdf->Ln();
+    }
+
+    private function drawSummary(InvoicePdf $pdf, Invoice $invoice, string $currency): void{
+	// VAT recapitulation from items
+	$vatRates = [];
+	/** @var InvoiceItem $invoiceItem */
+	foreach($invoice->getInvoiceItems() as $invoiceItem){
+	    $rate = $this->formatNumber((float)$invoiceItem->getVATRateValue());
+	    $vatRates[$rate] ??= ['base' => 0.0, 'total' => 0.0];
+	    $vatRates[$rate]['base'] += (float)$invoiceItem->getTotalPrice();
+	    $vatRates[$rate]['total'] += (float)$invoiceItem->getTotalPriceWithVAT();
+	}
+	ksort($vatRates, SORT_NUMERIC);
+
+	$recapHeight = 6 + 6 * count($vatRates);
+	$totalsHeight = 6 + 6 + 14;
+	if($pdf->GetY() + max($recapHeight, $totalsHeight) > $pdf->GetPageHeight() - self::BOTTOM_LIMIT){
+	    $pdf->AddPage();
+	}
+
+	$yStart = $pdf->GetY();
+
+	// left: VAT recapitulation
+	$recapColumns = [['VAT rate', 18, 'L'], ['Base', 24, 'R'], ['VAT', 22, 'R'], ['Total', 24, 'R']];
+	$pdf->SetFont(self::FONT, 'B', 7);
+	$this->setTextColor($pdf, self::COLOR_MUTED);
+	foreach($recapColumns as [$title, $width, $align]){
+	    $pdf->Cell($width, 6, mb_strtoupper($title), 'B', 0, $align);
+	}
+	$pdf->Ln();
+
+	$pdf->SetFont(self::FONT, '', 8);
+	$this->setTextColor($pdf, self::COLOR_TEXT);
+	foreach($vatRates as $rate => $sums){
+	    $pdf->Cell(18, 6, $rate . ' %', 0, 0, 'L');
+	    $pdf->Cell(24, 6, $this->formatMoney($sums['base']), 0, 0, 'R');
+	    $pdf->Cell(22, 6, $this->formatMoney($sums['total'] - $sums['base']), 0, 0, 'R');
+	    $pdf->Cell(24, 6, $this->formatMoney($sums['total']), 0, 1, 'R');
+	}
+	$yLeftEnd = $pdf->GetY();
+
+	// right: totals
+	$total = (float)$invoice->getTotal();
+	$totalWithVAT = (float)$invoice->getTotalWithVAT();
+	$xTotals = self::MARGIN + self::CONTENT_WIDTH - 80;
+
+	$pdf->SetXY($xTotals, $yStart);
+	$pdf->SetFont(self::FONT, '', 9);
+	$this->setTextColor($pdf, self::COLOR_MUTED);
+	$pdf->Cell(45, 6, 'Total excl. VAT', 0, 0);
+	$this->setTextColor($pdf, self::COLOR_TEXT);
+	$pdf->Cell(35, 6, $this->formatMoney($total) . ' ' . $currency, 0, 2, 'R');
+
+	$pdf->SetX($xTotals);
+	$this->setTextColor($pdf, self::COLOR_MUTED);
+	$pdf->Cell(45, 6, 'VAT', 0, 0);
+	$this->setTextColor($pdf, self::COLOR_TEXT);
+	$pdf->Cell(35, 6, $this->formatMoney($totalWithVAT - $total) . ' ' . $currency, 0, 2, 'R');
+
+	// total due box
+	$yBox = $pdf->GetY() + 2;
+	$this->setFillColor($pdf, self::COLOR_ACCENT);
+	$pdf->Rect($xTotals, $yBox, 80, 12, 'F');
+	$pdf->SetXY($xTotals + 4, $yBox);
+	$this->setTextColor($pdf, self::COLOR_WHITE);
+	$pdf->SetFont(self::FONT, '', 9);
+	$pdf->Cell(30, 12, 'Total due', 0, 0);
+	$pdf->SetFont(self::FONT, 'B', 13);
+	$pdf->Cell(42, 12, $this->formatMoney($totalWithVAT) . ' ' . $currency, 0, 0, 'R');
+
+	$pdf->SetY(max($yLeftEnd, $yBox + 12) + 10);
+    }
+
+    private function drawPaymentDetails(InvoicePdf $pdf, Invoice $invoice, ?Company $company, string $currency): void{
+	$details = array_filter([
+	    'Bank account' => $company?->getBankNumber(),
+	    'Variable symbol' => $this->getVariableSymbol($invoice),
+	    'Due date' => $invoice->getDueDate()?->format('d. m. Y'),
+	    'Amount' => $this->formatMoney((float)$invoice->getTotalWithVAT()) . ' ' . $currency,
+	]);
+
+	$boxHeight = 8 + 5 * count($details);
+	if($pdf->GetY() + $boxHeight > $pdf->GetPageHeight() - self::BOTTOM_LIMIT){
+	    $pdf->AddPage();
+	}
+
+	$yStart = $pdf->GetY();
+	$this->setFillColor($pdf, self::COLOR_BACKGROUND);
+	$pdf->Rect(self::MARGIN, $yStart, 90, $boxHeight + 4, 'F');
+	$this->setFillColor($pdf, self::COLOR_ACCENT);
+	$pdf->Rect(self::MARGIN, $yStart, 1.2, $boxHeight + 4, 'F');
+
+	$pdf->SetXY(self::MARGIN + 5, $yStart + 3);
+	$pdf->SetFont(self::FONT, 'B', 7);
+	$this->setTextColor($pdf, self::COLOR_ACCENT);
+	$pdf->Cell(80, 5, 'PAYMENT DETAILS', 0, 2);
+
+	$pdf->SetFont(self::FONT, '', 8.5);
+	foreach($details as $label => $value){
+	    $pdf->SetX(self::MARGIN + 5);
+	    $this->setTextColor($pdf, self::COLOR_MUTED);
+	    $pdf->Cell(28, 5, $label, 0, 0);
+	    $this->setTextColor($pdf, self::COLOR_TEXT);
+	    $pdf->Cell(52, 5, $value, 0, 2);
+	}
+
+	$pdf->SetXY(self::MARGIN + 100, $yStart + 3);
+	$pdf->SetFont(self::FONT, '', 8.5);
+	$this->setTextColor($pdf, self::COLOR_MUTED);
+	$pdf->MultiCell(80, 5, 'Thank you for your business. Please use the variable symbol when paying.', 0, 'L');
+    }
+
+    private function getVariableSymbol(Invoice $invoice): string{
+	// numeric part of the invoice number
+	return preg_replace('/\D/', '', $invoice->getNumber()) ?: $invoice->getNumber();
+    }
+
+    private function getLinesCount(InvoicePdf $pdf, float $width, string $text): int{
+	// MultiCell keeps 1 mm inner margin on both sides
+	$maxWidth = $width - 2;
+	$linesCount = 0;
+
+	foreach(explode("\n", $text) as $paragraph){
+	    $linesCount++;
+	    $line = '';
+	    foreach(explode(' ', $paragraph) as $word){
+		$candidate = $line === '' ? $word : $line . ' ' . $word;
+		if($line !== '' && $pdf->GetStringWidth($candidate) > $maxWidth){
+		    $linesCount++;
+		    $line = $word;
+		} else {
+		    $line = $candidate;
+		}
+	    }
+	}
+
+	return $linesCount;
+    }
+
+    private function formatMoney(float $value): string{
+	return number_format($value, 2, '.', ' ');
+    }
+
+    private function formatNumber(float $value): string{
+	return rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+    }
+
+    private function setTextColor(InvoicePdf $pdf, array $color): void{
+	$pdf->SetTextColor(...$color);
+    }
+
+    private function setFillColor(InvoicePdf $pdf, array $color): void{
+	$pdf->SetFillColor(...$color);
+    }
+
+    private function setDrawColor(InvoicePdf $pdf, array $color): void{
+	$pdf->SetDrawColor(...$color);
     }
 }
