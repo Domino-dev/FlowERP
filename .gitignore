@@ -19,3 +19,4 @@ app/Presentation/Test/
 # SECRET
 config/secret.neon
 config/production.neon
+config/local.neon

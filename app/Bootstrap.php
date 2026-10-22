@@ -47,5 +47,9 @@ class Bootstrap {
 	$this->configurator->addConfig($configDir . '/common.neon');
 	$this->configurator->addConfig($configDir . "/$env.neon");
 	$this->configurator->addConfig($configDir . '/services.neon');
+
+	if (is_file($configDir . '/local.neon')) {
+	    $this->configurator->addConfig($configDir . '/local.neon');
+	}
     }
 }
