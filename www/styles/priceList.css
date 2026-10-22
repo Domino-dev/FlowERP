@@ -1,0 +1,10 @@
+/* Sloupce seznamu ceníků */
+.price-lists .data-list-items-header,
+.price-lists .data-list-item {
+    grid-template-columns:
+        1fr
+        100px
+        130px
+        100px
+        80px;
+}

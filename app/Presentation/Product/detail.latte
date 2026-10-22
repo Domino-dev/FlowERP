@@ -2,47 +2,50 @@
 
 {/block}
 {block content}
-<a n:href="Product:default">Back to list</a>
+<div class="detail-header">
+    <a n:href="Product:default" class="btn btn-back">Back to list</a>
+</div>
 {form productDetailForm}
-    
-    {if !empty($product)}
-	<h2>Product detail</h2>
-    {else}
-	<h2>Product creation</h2>
-    {/if}
-    
+    <div class="section form-narrow">
+	{if !empty($product)}
+	    <h2>Product detail</h2>
+	{else}
+	    <h2>Product creation</h2>
+	{/if}
 
-    {input product-internalID}
-    
-    <div class="row">
-	<div class="col">
-            {label product-isEnabled/}
-            {input product-isEnabled}
-        </div>
-	<div class="col">
-            {label product-catalogueCode/}
-            {input product-catalogueCode}
-        </div>
-        <div class="col">
-            {label product-name/}
-            {input product-name}
-        </div>
-        <div class="col">
-            {label product-vatRate/}
-            {input product-vatRate}
-        </div>
+	{input product-internalID}
+
+	<div class="row">
+	    <div class="col">
+		{label product-catalogueCode/}
+		{input product-catalogueCode}
+	    </div>
+	    <div class="col">
+		{label product-name/}
+		{input product-name}
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col">
+		{label product-vatRate/}
+		{input product-vatRate}
+	    </div>
+	    <div class="col">
+		{label product-isEnabled/}
+		{input product-isEnabled}
+	    </div>
+	</div>
     </div>
 
-    <div class="mt-3">
-        {input submitProduct}
+    <div class="buttons">
+	{input submitProduct, class => "btn btn-primary"}
 	{if !empty($product)}
-	    {input deleteProduct}
+	    {input deleteProduct, class => "btn btn-danger"}
 	{/if}
     </div>
-
 {/form}
-    
+
 {/block content}
 {block scripts}
-    
+
 {/block}

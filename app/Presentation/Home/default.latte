@@ -1,8 +1,38 @@
-{* This is the welcome page, you can delete it *}
 {block styles}
 
 {/block}
 {block content}
+<div class="dashboard">
+    <h1>Dashboard</h1>
+    <p>Where do you want to continue?</p>
+
+    <div class="dashboard-tiles">
+	<a n:href="Invoice:detail" class="dashboard-tile">
+	    <strong>New invoice</strong>
+	    <span>Issue an invoice for a customer</span>
+	</a>
+	<a n:href="Invoice:default" class="dashboard-tile">
+	    <strong>Invoices</strong>
+	    <span>Drafts, issued and paid invoices</span>
+	</a>
+	<a n:href="Customer:default" class="dashboard-tile">
+	    <strong>Customers</strong>
+	    <span>Contacts, addresses and due days</span>
+	</a>
+	<a n:href="Product:default" class="dashboard-tile">
+	    <strong>Products</strong>
+	    <span>Catalogue codes and VAT rates</span>
+	</a>
+	<a n:href="Price:default" class="dashboard-tile">
+	    <strong>Prices</strong>
+	    <span>Product prices in price lists</span>
+	</a>
+	<a n:href="PriceList:default" class="dashboard-tile">
+	    <strong>Price lists</strong>
+	    <span>Currencies and VAT settings</span>
+	</a>
+    </div>
+</div>
 {/block}
 {block scripts}
 

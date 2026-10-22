@@ -18,7 +18,7 @@ class ProductFormFactory {
 	
 	$isEnabled = $productContainer->addCheckbox('isEnabled','Is enabled')->setHtmlId('product-is-enabled')->setDefaultValue(true);
 	$catalogueCode = $productContainer->addText('catalogueCode','Catalogue code')->setHtmlId('product-catalogue-code');
-	$name = $productContainer->addText('name','name')->setHtmlId('product-name');
+	$name = $productContainer->addText('name','Name')->setHtmlId('product-name');
 	$vatRate = $productContainer->addText('vatRate','Vat rate')->setHtmlId('product-vat-rate')->setDefaultValue(0);
 	
 	if(!empty($product)){

@@ -6,6 +6,7 @@ html, body {
     font-size: 15px;
     background: #f8fafc;
     color: #1e293b;
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -13,20 +14,65 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
 }
 
-.flash{
-    padding: 0.5rem;
-    text-align: center;
+a {
+    color: #2563eb;
+}
+
+/* FLASH ZPRÁVY */
+
+.flashes {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 380px;
+}
+
+.flash {
+    padding: 14px 18px;
+    border-radius: 12px;
+    border-left: 4px solid #2563eb;
+    background: #ffffff;
+    color: #1e293b;
     font-weight: 500;
-    color: white;
-} 
-
-.flash.success{
-    background-color: green;
+    font-size: 14px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    animation: flash-in 0.25s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.flash.warning{
-    background-color: red;
+.flash.success {
+    border-left-color: #16a34a;
 }
+
+.flash.warning {
+    border-left-color: #f97316;
+}
+
+.flash.error {
+    border-left-color: #dc2626;
+}
+
+.flash.hidden {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+@keyframes flash-in {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ROZLOŽENÍ */
 
 .app-container {
     display: flex;
@@ -37,12 +83,16 @@ h1, h2, h3, h4, h5, h6 {
 .page-container {
     flex: 1;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
+    min-width: 0;
 }
 
 main {
     flex: 1;
     padding: 32px;
+    width: 100%;
+    max-width: 1280px;
+    box-sizing: border-box;
 }
 
 /* BUTTONS */
@@ -53,6 +103,7 @@ main {
     justify-content: center;
     padding: 10px 20px;
     border-radius: 10px;
+    font-family: inherit;
     font-weight: 600;
     font-size: 14px;
     text-decoration: none;
@@ -60,6 +111,13 @@ main {
     transition: all 0.15s ease;
     border: none;
     margin: 1rem 0 1rem 0;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+    margin: 0;
 }
 
 /* Primary */
@@ -95,6 +153,15 @@ main {
     box-shadow: 0 3px 8px rgba(220, 38, 38, 0.2);
 }
 
+.btn-light {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.btn-light:hover {
+    background: #e2e8f0;
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -105,6 +172,7 @@ main {
     background: transparent;
     color: #374151;
     border: 2px solid #e5e7eb;
+    margin-top: 0;
 }
 
 .btn-back:hover {
@@ -133,35 +201,68 @@ main {
     box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
 }
 
-/* Pokud chceš šipku před text */
+/* Šipka před textem tlačítka zpět */
 .btn-back::before {
     content: "←";
     margin-right: 8px;
     font-weight: 600;
 }
 
+/* Skupina tlačítek pod formulářem */
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.buttons .btn {
+    margin: 0;
+}
+
 /* SIDE BAR */
 
 aside {
     width: 240px;
+    flex-shrink: 0;
     background: #ffffff;
     border-right: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
 }
 
 aside h1 {
-    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 24px;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     border-bottom: 1px solid #e2e8f0;
+}
+
+/* Logo */
+aside h1::before {
+    content: "F";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff;
+    font-size: 16px;
 }
 
 aside nav {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    gap: 8px;
+    gap: 4px;
 }
 
 aside nav a {
@@ -179,8 +280,9 @@ aside nav a:hover {
 }
 
 aside nav a.active {
-    background: #2563eb;
-    color: white;
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
 }
 
 aside p {
@@ -202,6 +304,7 @@ header {
     border-bottom: 1px solid #e2e8f0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     height: 70px;
+    flex-shrink: 0;
 }
 
 /* Header – welcome */
@@ -235,11 +338,20 @@ header {
 /** DATA LIST */
 
 .data-list {
+    position: relative;
     background: #ffffff;
     border-radius: 14px;
     padding: 24px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
     font-size: 14px;
+}
+
+/* Tlačítko pro vytvoření v pravém horním rohu */
+.data-list > .btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    margin: 0;
 }
 
 .data-list h1 {
@@ -255,12 +367,18 @@ header {
 
 .data-list-search {
     width: 280px;
-    padding: 10px 14px;
+    max-width: 100%;
+    padding: 10px 14px 10px 38px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     outline: none;
     transition: 0.2s ease;
     margin-bottom: 20px;
+    font-family: inherit;
+    font-size: 14px;
+    /* Lupa */
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center;
+    box-sizing: border-box;
 }
 
 .data-list-search:focus {
@@ -339,6 +457,15 @@ header {
     text-decoration: underline;
 }
 
+/* Prázdný seznam */
+.data-list-empty {
+    padding: 40px 16px;
+    text-align: center;
+    color: #94a3b8;
+    border: 1px dashed #e2e8f0;
+    border-radius: 10px;
+}
+
 .data-list-pagination {
     display: flex;
     gap: 10px;
@@ -350,6 +477,7 @@ header {
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: white;
+    font-family: inherit;
     cursor: pointer;
     transition: 0.15s ease;
 }
@@ -362,14 +490,42 @@ header {
     transform: scale(0.98);
 }
 
-.section{
+/* Štítky (Ano/Ne, stav) */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-info {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/** SEKCE A FORMULÁŘE */
+
+.section {
     background: #ffffff;
     border-radius: 16px;
     padding: 24px 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
-    gap: 24px; 
+    gap: 24px;
+}
+
+.section h2 {
+    font-size: 22px;
+    font-weight: 600;
 }
 
 .section h3 {
@@ -387,16 +543,45 @@ header {
     color: #475569;
 }
 
-.section input,
-.section select {
+.section input:not(.btn),
+.section select,
+.section textarea {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid #cbd5e1;
+    font-family: inherit;
     font-size: 14px;
+    background: #ffffff;
     transition: all 0.2s ease;
 }
 
-.section .row{
+.section textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Checkbox bez paddingu, v barvě aplikace */
+.section input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+/* Nette vykreslí checkbox jako <label><input>Text</label> – zarovnání k inputům vedle */
+.section .col label:has(> input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 41px;
+    margin-top: auto;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.section .row {
     display: flex;
     flex-wrap: wrap;
     gap: 16px; /* mezera mezi sloupci */
@@ -409,9 +594,281 @@ header {
     gap: 8px; /* mezera mezi label a input */
 }
 
-.section input:focus,
-.section select:focus {
+.section input:not(.btn):focus,
+.section select:focus,
+.section textarea:focus {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Chyba validace u konkrétního pole (nette-forms) */
+form .has-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    background-color: #fef2f2 !important;
+}
+
+form input[type="checkbox"].has-error {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+}
+
+.form-error-message {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #b91c1c;
+    animation: form-error-in 0.2s ease;
+}
+
+/* Ikona vykřičníku */
+.form-error-message::before {
+    content: "!";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+@keyframes form-error-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Chybové hlášky Nette formulářů (ze serveru) */
+.section .error,
+form ul.error {
+    margin: 0;
+    padding: 10px 14px;
+    list-style: none;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+/* Hlavička detailu – tlačítko zpět */
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.detail-header .btn {
+    margin: 0;
+}
+
+/* Úzký formulář (detail s pár poli) */
+.form-narrow {
+    max-width: 760px;
+}
+
+/** PŘIHLÁŠENÍ */
+
+.sign-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.12), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.12), transparent 40%),
+        #f8fafc;
+}
+
+.sign-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 36px;
+}
+
+.sign-card .sign-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.sign-card .sign-logo::before {
+    content: "F";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff;
+}
+
+.sign-card p {
+    margin: -12px 0 0 0;
+    color: #64748b;
+}
+
+/* Karta je flex sloupec – .col se nesmí roztahovat do výšky */
+.sign-card .col {
+    flex: none;
+}
+
+.sign-card .btn {
+    width: 100%;
+    margin: 8px 0 0 0;
+}
+
+/** DASHBOARD */
+
+.dashboard h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.dashboard > p {
+    margin: 0 0 28px 0;
+    color: #64748b;
+}
+
+.dashboard-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.dashboard-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.15s ease;
+}
+
+.dashboard-tile:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.1);
+    transform: translateY(-2px);
+}
+
+.dashboard-tile strong {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+}
+
+.dashboard-tile span {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.dashboard-tile::after {
+    content: "→";
+    margin-top: 8px;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/** CHYBOVÉ STRÁNKY */
+
+.error-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.error-page .section {
+    max-width: 520px;
+    text-align: center;
+    gap: 12px;
+}
+
+.error-page p {
+    margin: 0;
+    color: #64748b;
+}
+
+.error-page .btn {
+    align-self: center;
+}
+
+/** RESPONZIVITA */
+
+@media (max-width: 900px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    aside {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    aside nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 12px;
+    }
+
+    aside p {
+        display: none;
+    }
+
+    header {
+        padding: 0 16px;
+    }
+
+    main {
+        padding: 16px;
+    }
+
+    .section {
+        padding: 20px;
+    }
+
+    .data-list > .btn {
+        position: static;
+        margin-bottom: 16px;
+    }
+
+    .data-list {
+        overflow-x: auto;
+    }
+
+    .data-list-items-header,
+    .data-list-items {
+        min-width: 640px;
+    }
 }

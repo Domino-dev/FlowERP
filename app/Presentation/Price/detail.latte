@@ -1,61 +1,69 @@
 {block styles}
-
+<link rel="stylesheet" href="{$basePath}/styles/price.css"/>
 {/block}
 {block content}
-<a n:href="Price:default">Back to list</a>
+<div class="detail-header">
+    <a n:href="Price:default" class="btn btn-back">Back to list</a>
+</div>
 {snippet dynamicPriceForm}
 {form priceDetailForm}
+    <div class="section">
+	{if !empty($prices)}
+	    <h2>Price detail</h2>
+	{else}
+	    <h2>Price creation</h2>
+	{/if}
 
-    {if !empty($prices)}
-    <h2>Price detail</h2>
-    {else}
-    <h2>Price creation</h2>
-    {/if}
-    <div class="row">
-	<div class="col">
-            {input productInternalID}
-        </div>
-    </div>
-    {if empty($prices)}
-    <div class="row">
-	<div class="col">
-            {label productCatalogueCodeSearch/}
-            {input productCatalogueCodeSearch}
-        </div>
-	<div id="product-autocomplete">
-	    
+	{input productInternalID}
+
+	{if empty($prices)}
+	<div class="row">
+	    <div class="col">
+		{label productCatalogueCodeSearch/}
+		{input productCatalogueCodeSearch}
+		<div id="product-autocomplete"></div>
+	    </div>
+	</div>
+	{/if}
+
+	<div class="price-product">
+	    <span>Product:</span>
+	    <span id="price-product-catalogue-code"><b>{if ($product)}{$product->getCatalogueCode()}{/if}</b></span>
+	    <span id="price-product-name">{if ($product)}{$product->getName()}{/if}</span>
+	</div>
+
+	<h3>Prices</h3>
+	<div n:multiplier="multiplier" id="product-price-multiplier" class="multiplier ajax price-multiplier-row">
+	    <input n:name="internalID">
+	    <div class="col">
+		<label n:name="priceListInternalID"/>
+		<select n:name="priceListInternalID"></select>
+	    </div>
+	    <div class="col">
+		<label n:name="value"/>
+		<input n:name="value">
+	    </div>
+	    <div class="col">
+		<label n:name="validFrom"/>
+		<input n:name="validFrom">
+	    </div>
+	    <div class="col">
+		<label n:name="validTo"/>
+		<input n:name="validTo">
+	    </div>
+	    {multiplier:remove class:'ajax btn btn-danger btn-small', data-naja-history: 'off'}
+	</div>
+	<div>
+	    {multiplier:add multiplier class:'ajax btn btn-light btn-small'}
 	</div>
     </div>
-    {/if}
-    <div class="row">
-	<div class="col">
-            <span>Product: </span><span id="price-product-catalogue-code"><b>{if ($product)}{$product->getCatalogueCode()}{/if}</b></span>
-	    <span id="price-product-name">{if ($product)}{$product->getName()}{/if}</span>
-        </div>
-    </div>
-	
-    
-    <div n:multiplier="multiplier" id="product-price-multiplier" class="multiplier ajax">
-	<input n:name="internalID">
-	<label n:name="priceListInternalID"/>
-        <select n:name="priceListInternalID"></select>
-	<label n:name="value"/>
-        <input n:name="value">
-	<label n:name="validFrom"/>
-        <input n:name="validFrom">
-	<label n:name="validTo"/>
-        <input n:name="validTo">
-	{multiplier:remove class:'ajax', data-naja-history: 'off'}
-    </div>
-    {multiplier:add multiplier class:'ajax'}
 
     <div class="buttons">
-        {input submitPrice, class => "btn btn-primary"}
+	{input submitPrice, class => "btn btn-primary"}
 	{if !empty($prices)}
 	    {input deletePrice, class => "btn btn-danger"}
 	{/if}
     </div>
-
 {/form}
 {/snippet}
 {/block content}

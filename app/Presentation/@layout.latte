@@ -3,27 +3,30 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>{ifset title}{include title|stripHtml} | {/ifset}Nette Web</title>
-	<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+	<title>{ifset title}{include title|stripHtml} | {/ifset}Flow ERP</title>
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap' rel='stylesheet'>
 	<link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="/styles/global.css"/>
-	{include styles}
+	<link rel="stylesheet" href="{$basePath}/styles/global.css"/>
+	{ifset #styles}{include styles}{/ifset}
 </head>
 <body>
-    <div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+    <div class="flashes" n:if="$flashes">
+	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+    </div>
     <div class="app-container">
-	
-    {if $isCompanyUserLoggedIn}
+
+    {if $isCompanyUserLoggedIn ?? false}
 	<aside>
 	    <h1>Flow ERP</h1>
 	    <nav>
-		<a n:href="Customer:default">Customers</a>
-		<a n:href="Invoice:default">Invoice</a>
-		<a n:href="Price:default">Prices</a>
-		<a n:href="PriceList:default">Price lists</a>
-		<a n:href="Product:default">Products</a>
-		<a n:href="CompanyUser:default">Users</a>
-		<a n:href="Company:default,'cid' => $companyInternalID">Company</a>
+		<a n:href="Home:default" n:class="$presenter->isLinkCurrent('Home:*') ? active">Dashboard</a>
+		<a n:href="Customer:default" n:class="$presenter->isLinkCurrent('Customer:*') ? active">Customers</a>
+		<a n:href="Invoice:default" n:class="$presenter->isLinkCurrent('Invoice:*') ? active">Invoices</a>
+		<a n:href="Price:default" n:class="$presenter->isLinkCurrent('Price:*') ? active">Prices</a>
+		<a n:href="PriceList:default" n:class="$presenter->isLinkCurrent('PriceList:*') ? active">Price lists</a>
+		<a n:href="Product:default" n:class="$presenter->isLinkCurrent('Product:*') ? active">Products</a>
+		<a n:href="CompanyUser:default" n:class="$presenter->isLinkCurrent('CompanyUser:*') ? active">Users</a>
+		<a n:href="Company:default,'cid' => $companyInternalID" n:class="$presenter->isLinkCurrent('Company:*') ? active">Company</a>
 	    </nav>
 	    <p>&copy 2025 Dominik Štěpánek</p>
 	</aside>
@@ -45,11 +48,12 @@
 	    {include content}
 	{/if}
     </div>
+
+    <script src="https://unpkg.com/nette-forms@3.5.3/src/assets/netteForms.min.js"></script>
+    <script src="{$basePath}/scripts/lib/Naja.js"></script>
+    <script src="{$basePath}/scripts/lib/jquery-3.7.1.min.js"></script>
+    <script src="{$basePath}/scripts/app.js"></script>
+
+    {ifset #scripts}{include scripts}{/ifset}
 </body>
 </html>
-<script src="https://unpkg.com/nette-forms@3"></script>
-<script src="{$basePath}/scripts/lib/Naja.js"></script>
-<script src="{$basePath}/scripts/lib/jquery-3.7.1.min.js"></script>
-<script src="{$basePath}/scripts/app.js"></script>
-
-{include scripts}

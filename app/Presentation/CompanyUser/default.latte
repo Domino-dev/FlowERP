@@ -1,41 +1,43 @@
 {block styles}
-
+<link rel="stylesheet" href="{$basePath}/styles/companyUser.css"/>
 {/block}
 {block content}
 
-<a n:href="CompanyUser:detail">Create user</a>
-<div class="page-content">
+<div class="data-list company-users">
+    <a n:href="CompanyUser:detail" class="btn btn-primary">Create user</a>
     <h1>Users</h1>
     <p>Total users: {$totalCompanyUsersCount}</p>
-    <input type="text" id="company-users-search" placeholder="Name or role"/>
+    <input type="text" id="company-users-search" class="data-list-search" placeholder="Name or role"/>
     {if $totalCompanyUsersCount > 0}
     <div n:snippet="company-users">
-	<span>Searched company users: {$searchedCompanyUsersCount}</span>
-	<div id="company-users-header">
+	<span class="data-list-count">Searched users: {$searchedCompanyUsersCount}</span>
+	<div class="data-list-items-header">
 	    <span>Name</span>
 	    <span>Role</span>
 	    <span></span>
 	</div>
-	<div id="company-users">
+	<div class="data-list-items">
 	    {foreach $companyUsers as $companyUser}
-		<div class="comapny-user">
-		    <span>{$companyUser->getName()}</span>
-		    <span>{$companyUser->getRole()}</span>
-		    <span><a n:href="CompanyUser:detail, 'uid' => $companyUser->getInternalID()">Detail</a></span>
+		<div class="data-list-item">
+		    <span title="{$companyUser->getName()}">{$companyUser->getName()}</span>
+		    <span><span class="badge badge-info">{$companyUser->getRole()}</span></span>
+		    <a n:href="CompanyUser:detail, 'uid' => $companyUser->getInternalID()">Detail</a>
 		</div>
 	    {/foreach}
 	</div>
 
-	<div class="pagination">
+	<div class="data-list-pagination">
 	    {if $page > 1}
-		<button class="company-user-page-button" data-page-number="{$page-1}">Previous</button>
+		<button class="data-list-pagination-page-button company-users-page-button" data-page-number="{$page-1}">Previous</button>
 	    {/if}
 
 	    {if $page * $limit < $searchedCompanyUsersCount}
-		<button class="company-user-page-button" data-page-number="{$page+1}">Next</button>
+		<button class="data-list-pagination-page-button company-users-page-button" data-page-number="{$page+1}">Next</button>
 	    {/if}
 	</div>
     </div>
+    {else}
+    <div class="data-list-empty">No users yet.</div>
     {/if}
 </div>
 {/block content}

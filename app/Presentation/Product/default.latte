@@ -1,42 +1,53 @@
 {block styles}
-
+<link rel="stylesheet" href="{$basePath}/styles/product.css"/>
 {/block}
 {block content}
 
-<a n:href="Product:detail" class="creation-a">Create product</a>
-
-<div class="page-content">
+<div class="data-list products">
+    <a n:href="Product:detail" class="btn btn-primary">Create product</a>
     <h1>Products</h1>
     <p>Total products: {$totalProductsCount}</p>
-    <input type="text" id="products-search" placeholder="Catalogue code or name"/>
+    <input type="text" id="products-search" class="data-list-search" placeholder="Catalogue code or name"/>
     {if $totalProductsCount > 0}
     <div n:snippet="products">
-	<span>Searched products count: {$searchedProductsCount}</span>
-	<div id="products-header">
+	<span class="data-list-count">Searched products: {$searchedProductsCount}</span>
+	<div class="data-list-items-header">
 	    <span>Catalogue code</span>
-	    <span>name</span>
+	    <span>Name</span>
+	    <span>VAT rate</span>
+	    <span>Status</span>
 	    <span></span>
 	</div>
-	<div id="products">
+	<div class="data-list-items">
 	    {foreach $products as $product}
-		<div class="product">
-		    <span>{$product->getCatalogueCode()}</span>
-		    <span>{$product->getName()|truncate:32}</span>
-		    <span><a n:href="Product:detail, 'pid' => $product->getInternalID()">Detail</a></span>
+		<div class="data-list-item">
+		    <span title="{$product->getCatalogueCode()}">{$product->getCatalogueCode()}</span>
+		    <span title="{$product->getName()}">{$product->getName()}</span>
+		    <span>{$product->getVatRate()} %</span>
+		    <span>
+			{if $product->getIsEnabled()}
+			    <span class="badge badge-success">Enabled</span>
+			{else}
+			    <span class="badge">Disabled</span>
+			{/if}
+		    </span>
+		    <a n:href="Product:detail, 'pid' => $product->getInternalID()">Detail</a>
 		</div>
 	    {/foreach}
 	</div>
 
-	<div class="pagination">
+	<div class="data-list-pagination">
 	    {if $page > 1}
-		<button class="product-page-button" data-page-number="{$page-1}">Previous</button>
+		<button class="data-list-pagination-page-button product-page-button" data-page-number="{$page-1}">Previous</button>
 	    {/if}
 
 	    {if $page * $limit < $searchedProductsCount}
-		<button class="product-page-button" data-page-number="{$page+1}">Next</button>
+		<button class="data-list-pagination-page-button product-page-button" data-page-number="{$page+1}">Next</button>
 	    {/if}
 	</div>
     </div>
+    {else}
+    <div class="data-list-empty">No products yet. Create the first one!</div>
     {/if}
 </div>
 {/block content}

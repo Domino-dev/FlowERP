@@ -1,48 +1,48 @@
 {block styles}
-
+<link rel="stylesheet" href="{$basePath}/styles/price.css"/>
 {/block}
 {block content}
-<div class="page-content">
-    <a n:href="Price:detail" class="creation-a">Create price</a>
+<div class="data-list prices">
+    <a n:href="Price:detail" class="btn btn-primary">Create price</a>
     <h1>Prices</h1>
     <p>Total prices: {$totalPricesCount}</p>
-    <input type="text" id="prices-search" placeholder="Product code, Price list, ..."/>
+    <input type="text" id="prices-search" class="data-list-search" placeholder="Product code, Price list, ..."/>
     {if $totalPricesCount > 0}
     <div n:snippet="prices">
-	<span>Searched prices: {$searchedPricesCount}</span>
-	<div id="prices-header">
+	<span class="data-list-count">Searched prices: {$searchedPricesCount}</span>
+	<div class="data-list-items-header">
 	    <span>Product code</span>
 	    <span>Price list</span>
 	    <span>Value</span>
-	    <span>Currency</span>
 	    <span>Valid from</span>
 	    <span>Valid to</span>
 	    <span></span>
 	</div>
-	<div id="prices">
+	<div class="data-list-items">
 	    {foreach $prices as $price}
-		<div class="price">
-		    <span>{$price->getProduct()->getCatalogueCode()}</span>
-		    <span>{$price->getPriceList()->getName()}</span>
-		    <span>{$price->getValue()}</span>
-		    <span>{$price->getPriceList()->getCurrency()}</span>
-		    <span>{$price->getValidFrom()->format('Y-m-d H:i:s')}</span>
-		    <span>{$price->getValidTo()->format('Y-m-d H:i:s')}</span>
-		    <span><a n:href="Price:detail, 'pid' => $price->getProduct()->getInternalID()">Detail</a></span>
+		<div class="data-list-item">
+		    <span title="{$price->getProduct()->getCatalogueCode()}">{$price->getProduct()->getCatalogueCode()}</span>
+		    <span title="{$price->getPriceList()->getName()}">{$price->getPriceList()->getName()}</span>
+		    <span class="price-value">{$price->getValue()} {$price->getPriceList()->getCurrency()}</span>
+		    <span>{$price->getValidFrom()->format('j. n. Y H:i')}</span>
+		    <span>{$price->getValidTo()->format('j. n. Y H:i')}</span>
+		    <a n:href="Price:detail, 'pid' => $price->getProduct()->getInternalID()">Detail</a>
 		</div>
 	    {/foreach}
 	</div>
 
-	<div class="pagination">
+	<div class="data-list-pagination">
 	    {if $page > 1}
-		<button class="price-page-button" data-page-number="{$page-1}">Previous</button>
+		<button class="data-list-pagination-page-button price-page-button" data-page-number="{$page-1}">Previous</button>
 	    {/if}
 
 	    {if $page * $limit < $searchedPricesCount}
-		<button class="price-page-button" data-page-number="{$page+1}">Next</button>
+		<button class="data-list-pagination-page-button price-page-button" data-page-number="{$page+1}">Next</button>
 	    {/if}
 	</div>
     </div>
+    {else}
+    <div class="data-list-empty">No prices yet. Create the first one!</div>
     {/if}
 </div>
 {/block content}

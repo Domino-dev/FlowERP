@@ -2,9 +2,27 @@
 
 {/block}
 {block content}
+<div class="sign-page">
+    {form signInForm, class: 'section sign-card'}
+	<div class="sign-logo">Flow ERP</div>
+	<p>Sign in to your account</p>
 
-{control signInForm}
+	<ul class="error" n:ifcontent>
+	    <li n:foreach="$form->getOwnErrors() as $error">{$error}</li>
+	</ul>
 
+	<div class="col">
+	    {label sign-email/}
+	    {input sign-email}
+	</div>
+	<div class="col">
+	    {label sign-password/}
+	    {input sign-password}
+	</div>
+
+	{input login, class => "btn btn-primary"}
+    {/form}
+</div>
 {/block}
 {block scripts}
 

@@ -8,7 +8,7 @@
     <a n:href="Customer:detail" class="btn btn-primary">Create customer</a>
     <h1>Customers</h1>
     <p>Total customers: {$customersTotalCount}</p>
-    <input type="text" class="data-list-search" placeholder="Search customer" />
+    <input type="text" id="customer-search" class="data-list-search" placeholder="Search customer" />
     {if $customersTotalCount > 0}
     <div n:snippet="customers">
 	<span class="data-list-count">Searched customers: {$searchedCustomersCount}</span>
@@ -37,14 +37,16 @@
 
 	<div class="data-list-pagination">
 	    {if $page > 1}
-		<button class="data-list-pagination-page-button" data-page-number="{$page-1}">Previous</button>
+		<button class="data-list-pagination-page-button customer-page-button" data-page-number="{$page-1}">Previous</button>
 	    {/if}
 
 	    {if $page * $limit < $searchedCustomersCount}
-		<button class="data-list-pagination-page-button" data-page-number="{$page+1}">Next</button>
+		<button class="data-list-pagination-page-button customer-page-button" data-page-number="{$page+1}">Next</button>
 	    {/if}
 	</div>
     </div>
+    {else}
+    <div class="data-list-empty">No customers yet. Create the first one!</div>
     {/if}
 </div>
 

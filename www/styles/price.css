@@ -1,0 +1,67 @@
+/* Sloupce seznamu cen */
+.prices .data-list-items-header,
+.prices .data-list-item {
+    grid-template-columns:
+        160px
+        1fr
+        140px
+        150px
+        150px
+        80px;
+}
+
+.prices .price-value {
+    font-weight: 600;
+}
+
+/* Detail – řádek ceny v multiplieru */
+.price-multiplier-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.price-multiplier-row .col {
+    flex: 1 1 160px;
+}
+
+/* Našeptávač produktů */
+#product-autocomplete {
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+#product-autocomplete:empty {
+    display: none;
+}
+
+.product-autocomplete-row {
+    margin: 0;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.product-autocomplete-row:hover {
+    background: #eff6ff;
+}
+
+/* Vybraný produkt */
+.price-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1e293b;
+}

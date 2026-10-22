@@ -1,0 +1,10 @@
+/* Sloupce seznamu produktů */
+.products .data-list-items-header,
+.products .data-list-item {
+    grid-template-columns:
+        180px
+        1fr
+        100px
+        110px
+        80px;
+}

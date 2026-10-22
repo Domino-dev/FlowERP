@@ -1,0 +1,8 @@
+/* Sloupce seznamu uživatelů */
+.company-users .data-list-items-header,
+.company-users .data-list-item {
+    grid-template-columns:
+        1fr
+        200px
+        80px;
+}
