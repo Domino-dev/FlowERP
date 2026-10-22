@@ -40,15 +40,11 @@ class SignPresenter extends \App\Presentation\BasePresenter{
     
     public function signInFormSuccess(Form $form, \stdClass $data): void{
 	
-	$companyUserIdentity = $this->authenticator->authenticate($data->sign->email, $data->sign->password);
-	if(empty($companyUserIdentity)){
-	    $this->flashMessage('Invalid credentials!');
-	}
-	
 	try {
+	    $companyUserIdentity = $this->authenticator->authenticate($data->sign->email, $data->sign->password);
 	    $this->user->login($companyUserIdentity);
 	} catch (\Nette\Security\AuthenticationException $authEx) {
-	    $this->flashMessage('Something went wrong!');
+	    $this->flashMessage('Invalid credentials!', 'warning');
 	    $this->redirect('this');
 	}
 	
