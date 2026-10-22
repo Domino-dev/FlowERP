@@ -41,7 +41,7 @@ class InvoiceService {
 	$this->countries = json_decode($countriesJSON, true);
     }
     
-    public function createInvoiceStructure(\stdClass $invoiceData,CompanyUser $user, ?Customer $customer, PriceList $priceList,string $paymentMethod): Invoice{
+    public function createInvoiceStructure(\stdClass $invoiceData,CompanyUser $user, ?Customer $customer, PriceList $priceList): Invoice{
 	
 	$number = $this->generateInvoiceNumber();
 	
@@ -124,7 +124,7 @@ class InvoiceService {
 	$prefix = 'INV';
 
 	// Get the last invoice (ordered descending by number)
-	$lastInvoice = $this->invoiceRepository->findBy([], ['number' => 'DESC'], 1);
+	$lastInvoice = $this->invoiceRepository->findOneBy([], ['number' => 'DESC']);
 	if (!empty($lastInvoice)) {
 	    $lastInvoiceNumber = $lastInvoice->getNumber(); 
 	    $lastNumericNumber = str_replace("{$prefix}{$year}{$month}", '', $lastInvoiceNumber);
@@ -149,7 +149,7 @@ class InvoiceService {
 	    $vatRate = (float)$invoiceItem['vatPercentageValue'];
 	    $discount = (float)$invoiceItem['discount'];
 	    $invoiceItemsSumWithoutVAT += $totalPrice = round($price*$quantity*(1-$discount/100),2);
-	    $invoiceItemsSumWithVAT += round($totalPrice*(1-$vatRate/100),2);
+	    $invoiceItemsSumWithVAT += round($totalPrice*(1+$vatRate/100),2);
 	}
 	
 	return [

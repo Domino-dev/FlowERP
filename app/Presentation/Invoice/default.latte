@@ -39,7 +39,7 @@
 	{foreach $invoices as $invoice}
 	    <div class="data-list-item">
 		<span>{$invoice->getNumber()}</span>
-		<span>{$invoice->getCustomer()->getName()}</span>
+		<span>{$invoice->getInvoiceCustomer()->getName()}</span>
 		<span>{$invoice->getTotal()}</span>
 		<span>{$invoice->getTotalWithVAT()}</span>
 		<span>{$invoice->getStatusName()}</span>

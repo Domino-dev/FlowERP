@@ -85,23 +85,28 @@ class InvoiceFacade{
     public function createInvoice(\stdClass $invoiceData, string $userInternalID):?string{
 	// pricelist
 	$priceListInternalID = $invoiceData->priceList;
-	$priceList = $this->getPriceListByInternalID($priceListInternalID);
-	
+	$priceList = !empty($priceListInternalID) ? $this->getPriceListByInternalID($priceListInternalID) : null;
+	$priceList ??= $this->priceListRepository->getDefaultPriceList();
+	if(empty($priceList)){
+	    return null;
+	}
+
 	$user = $this->getUserByInternalID($userInternalID);
 	if(empty($user)){
 	    return null;
 	}
-	
+
+	$customer = null;
 	$customerInternalID = $invoiceData->customerInternalID;
 	if(!empty($customerInternalID)){
 	    $customer = $this->customerRepository->findOneBy(['internalID' => $customerInternalID]);
 	}
-	
+
 	// invoice creation
 	$invoice = $this->invoiceService->createInvoiceStructure($invoiceData, $user, $customer, $priceList);
 	$this->entityManagerInterface->persist($invoice);
 	// set invoice and customer
-	$customer->addInvoice($invoice);
+	$customer?->addInvoice($invoice);
 	
 	// invoice customer creation
 	$invoiceCustomerData = $invoiceData->customer;
@@ -142,7 +147,7 @@ class InvoiceFacade{
 	}
 	
 	if(empty($invoiceItems)){
-	    return false;
+	    return null;
 	}
 	
 	$invoice->setTotal($invoiceTotal);
@@ -160,10 +165,10 @@ class InvoiceFacade{
 	} catch (Throwable $ex){
 	    // LOG
 	}
-	
+
 	return null;
     }
-    
+
     public function getInvoice(string $invoiceInternalID): ?Invoice{
 	return $this->invoiceRepository->findOneBy(['internalID' => $invoiceInternalID]);
     }
@@ -259,7 +264,7 @@ class InvoiceFacade{
 	
 	$priceList = $this->priceListRepository->findOneBy(['internalID' => $priceListInternalID]);
 	if(empty($priceList)){
-	    return [];
+	    return $asArray ? [] : null;
 	}
 	
 	return $asArray ? $priceList->toArray() : $priceList;
@@ -323,9 +328,10 @@ class InvoiceFacade{
 	}
 	
 	$priceListInternalID = $invoiceData->priceList;
-	$priceList = $this->getPriceListByInternalID($priceListInternalID);
-	
-	$invoice->setPriceList($priceList);
+	$priceList = !empty($priceListInternalID) ? $this->getPriceListByInternalID($priceListInternalID) : null;
+	if(!empty($priceList)){
+	    $invoice->setPriceList($priceList);
+	}
 	
 	$invoiceCustomerInternalID = $invoice->getInvoiceCustomer()->getInternalID();
 	if(empty($invoiceCustomerInternalID)){
@@ -351,7 +357,7 @@ class InvoiceFacade{
 	$invoiceCustomer->setEmail($invoiceCustomerData->email);
 	$invoiceCustomer->setPhone($invoiceCustomerData->phone);
 	$invoiceCustomer->setCompanyNumber($invoiceCustomerData->companyNumber);
-	$invoiceCustomer->getVatNumber($invoiceCustomerData->vatNumber);
+	$invoiceCustomer->setVatNumber($invoiceCustomerData->vatNumber);
 
 	// invoice customer billing address update
 	$invoiceCustomerBillingAddressDataDB = $invoice->getInvoiceCustomer()->getInvoiceCustomerBillingAddress();

@@ -124,7 +124,7 @@ class InvoiceFormFactory {
 	    $invoiceItems = self::getMultiplierItems($invoice->getInvoiceItems());
 	    
 	    $invoiceInternalID->setDefaultValue($invoice->getInternalID());
-	    $customerInternalID->setDefaultValue($invoice->getCustomer()->getInternalID());
+	    $customerInternalID->setDefaultValue($invoice->getCustomer()?->getInternalID());
 	    $invoiceCustomerInternalID->setDefaultValue($invoice->getInvoiceCustomer()->getInternalID());
 	    
 	    if(!empty($invoice->getPriceList())){

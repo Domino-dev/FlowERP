@@ -72,11 +72,12 @@ final class InvoicePresenter extends \App\Presentation\BasePresenter
 	$invoiceInternalID = $iid;
 	if(!empty($invoiceInternalID)){
 	    $this->invoice = $this->invoiceFacade->getInvoice($invoiceInternalID);
-	    $this->priceListInternalID = $this->invoice?->getPriceList()->getInternalID();
+	    $this->priceListInternalID = $this->invoice?->getPriceList()?->getInternalID();
 	    $this->invoiceCustomer = $this->invoice?->getInvoiceCustomer();
 	    $customer = $this->invoice?->getCustomer();
-	    
-	    $this->customerIdentificator = $customer->getIdentificator();
+
+	    // customer can be deleted, invoice keeps its own snapshot
+	    $this->customerIdentificator = $customer?->getIdentificator();
 	}
 	
 	$this->editingInvoice = !empty($open) || empty($this->invoice);
