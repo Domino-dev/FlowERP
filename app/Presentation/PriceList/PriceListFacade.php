@@ -127,11 +127,14 @@ class PriceListFacade {
 	    $this->entityManagerInterface->remove($priceList);
 	    $this->entityManagerInterface->flush();
 	    return true;
+	} catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException $fkEx){
+	    // price list is used on invoices
+	    throw $fkEx;
 	} catch (\Doctrine\DBAL\Exception $dcEx) {
 	    // LOG
-	} catch (Exception $ex){
+	} catch (\Exception $ex){
 	    // LOG
-	} catch (Throwable $th){
+	} catch (\Throwable $th){
 	    // LOG
 	}
 	

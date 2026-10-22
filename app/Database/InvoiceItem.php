@@ -7,16 +7,10 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Database\Product;
 use App\Database\Invoice;
 
-use App\Database\InvoiceitemRepository;
+use App\Database\InvoiceItemRepository;
 
-#[ORM\Entity(repositoryClass: InvoiceitemRepository::class)]
-#[ORM\Table(name:"invoices_items",
-	indexes: [
-	new ORM\Index(
-	    name: 'IX_invoices_customers__email',
-	    columns: ['email']
-	)]
-)]
+#[ORM\Entity(repositoryClass: InvoiceItemRepository::class)]
+#[ORM\Table(name:"invoices_items")]
 class InvoiceItem {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -25,12 +19,12 @@ class InvoiceItem {
     #[ORM\Column(name: 'internal_id', type: "string", length: 36, options: ["fixed" => true ], unique: true)]
     protected string $internalID;
     
-    #[ORM\ManyToOne(targetEntity: Invoice::class, inversedBy:"invoiceItem")]
+    #[ORM\ManyToOne(targetEntity: Invoice::class, inversedBy:"invoiceItems")]
     #[ORM\JoinColumn(name: "invoices_id", referencedColumnName: "id", onDelete: "CASCADE")]
     protected Invoice $invoice;
     
-    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: "invoiceItem")]
-    #[ORM\JoinColumn(name: "products_id", referencedColumnName: "id", nullable: true, onDelete: "CASCADE")]
+    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\JoinColumn(name: "products_id", referencedColumnName: "id", nullable: true, onDelete: "SET NULL")]
     protected ?Product $product;
     
     #[ORM\Column(name: "catalogue_code",type: "string", length:255)]

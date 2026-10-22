@@ -34,10 +34,10 @@ class Customer{
     protected ?string $vatNumber;
     #[ORM\Column(type: "text",nullable: true)]
     protected ?string $note;
-    #[ORM\ManyToOne(targetEntity: PriceList::class, inversedBy: "customer")]
+    #[ORM\ManyToOne(targetEntity: PriceList::class, inversedBy: "customers")]
     #[ORM\JoinColumn(name: "price_lists_id", referencedColumnName: "id", nullable: true, onDelete:"SET NULL")]
     private ?PriceList $priceList = null;
-    #[ORM\OneToMany(targetEntity: Invoice::class, mappedBy: "customer", cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(targetEntity: Invoice::class, mappedBy: "customer", cascade: ["persist"])]
     private ?Collection $invoice = null;
     #[ORM\OneToOne(mappedBy: "customer", targetEntity: CustomerBillingAddress::class, cascade: ["persist", "remove"])]
     private ?CustomerBillingAddress $customerBillingAddress = null;

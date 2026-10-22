@@ -119,7 +119,12 @@ class PriceListPresenter extends BasePresenter{
 	
 	$priceListDeleted = false;
 	if(!empty($this->priceList)){
-	    $priceListDeleted = $this->priceListFacade->deletePriceList($this->priceList);
+	    try{
+		$priceListDeleted = $this->priceListFacade->deletePriceList($this->priceList);
+	    } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException $fkEx){
+		$this->flashMessage('Cannot delete the price list! It is used on invoices.', 'warning');
+		$this->redirect('this');
+	    }
 	}
 	
 	if(!$priceListDeleted){

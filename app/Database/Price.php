@@ -28,7 +28,7 @@ class Price {
     #[ORM\JoinColumn(name: 'products_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     protected ?Product $product;
 
-    #[ORM\ManyToOne(targetEntity: PriceList::class, inversedBy: 'price')]
+    #[ORM\ManyToOne(targetEntity: PriceList::class, inversedBy: 'prices')]
     #[ORM\JoinColumn(name: 'price_lists_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     protected PriceList $priceList;
     

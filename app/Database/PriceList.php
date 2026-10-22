@@ -19,7 +19,7 @@ class PriceList
     protected string $internalID;
     #[ORM\OneToMany(mappedBy: "priceList", targetEntity: Price::class)]
     protected ?Collection $prices = null;
-    #[ORM\OneToMany(mappedBy: "priceList", targetEntity: Customer::class, cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(mappedBy: "priceList", targetEntity: Customer::class, cascade: ["persist"])]
     private ?Collection $customers = null;
     #[ORM\Column(type: "string", length: 255, unique: true)]
     protected string $name;

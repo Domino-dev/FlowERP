@@ -37,14 +37,14 @@ class Invoice {
     protected CompanyUser $companyUser;
     
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy:"invoice")]
-    #[ORM\JoinColumn(name: "customers_id", referencedColumnName: "id", nullable: true, onDelete:"CASCADE")]
+    #[ORM\JoinColumn(name: "customers_id", referencedColumnName: "id", nullable: true, onDelete:"SET NULL")]
     protected ?Customer $customer = null;
     
     #[ORM\OneToOne(targetEntity: InvoiceCustomer::class, mappedBy:"invoice", cascade: ["persist", "remove"])]
     protected InvoiceCustomer $invoiceCustomer;
     
-    #[ORM\ManyToOne(targetEntity: PriceList::class, inversedBy:"invoice")]
-    #[ORM\JoinColumn(name: "price_lists_id", referencedColumnName: "id", nullable: true, onDelete:"CASCADE")]
+    #[ORM\ManyToOne(targetEntity: PriceList::class)]
+    #[ORM\JoinColumn(name: "price_lists_id", referencedColumnName: "id", nullable: true, onDelete:"RESTRICT")]
     protected ?PriceList $priceList = null;
     
     #[ORM\OneToMany(targetEntity: InvoiceItem::class, mappedBy:"invoice", cascade: ["persist", "remove"],orphanRemoval: true)]

@@ -4,9 +4,9 @@ namespace App\Database;
 
 use Doctrine\ORM\Mapping as ORM;
 
-use App\Database\CustomerBillingAddressRepository;
+use App\Database\CustomerDeliveryAddressRepository;
 
-#[ORM\Entity(repositoryClass: CustomerBillingAddressRepository::class)]
+#[ORM\Entity(repositoryClass: CustomerDeliveryAddressRepository::class)]
 #[ORM\Table(name: "`customers_delivery_addresses`")]
 class CustomerDeliveryAddress {
     #[ORM\Id]
