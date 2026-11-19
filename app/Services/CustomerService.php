@@ -36,7 +36,7 @@ class CustomerService {
 	$this->priceListRepository = $this->entityManagerInterface->getRepository(PriceList::class);
 	
 	
-	$path = '../App/Resources/countries.json';
+	$path = __DIR__ . '/../Resources/countries.json';
 	$countriesJSON = file_get_contents($path);
 	$this->countries = json_decode($countriesJSON, true);
     }

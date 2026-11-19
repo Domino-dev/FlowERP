@@ -21,7 +21,7 @@ class PriceListService {
     }
     
     private function getCurrencies():?array{
-	$path = '../App/Resources/currencies.json';
+	$path = __DIR__ . '/../Resources/currencies.json';
 	$currenciesJsonString = file_get_contents($path);
 	$currencies = json_decode($currenciesJsonString, true);
 	

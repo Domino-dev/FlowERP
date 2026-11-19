@@ -36,7 +36,7 @@ class InvoiceService {
 	$this->emi = $managerProvider->getDefaultManager();
 	$this->invoiceRepository = $this->emi->getRepository(Invoice::class);
 	
-	$path = '../App/Resources/countries.json';
+	$path = __DIR__ . '/../Resources/countries.json';
 	$countriesJSON = file_get_contents($path);
 	$this->countries = json_decode($countriesJSON, true);
     }
