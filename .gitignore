@@ -15,6 +15,7 @@ temp/cache/*
 
 # TEST
 app/Presentation/Test/
+tests/temp/
 
 # SECRET
 config/secret.neon

@@ -46,7 +46,7 @@
 	},
 	"scripts": {
 		"phpstan": "phpstan analyse",
-		"tester": "tester tests -s"
+		"tester": "tester tests -s -C -p php"
 	},
 	"minimum-stability": "stable",
 	"config": {

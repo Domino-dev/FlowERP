@@ -1,0 +1,11 @@
+# Test overrides - loaded after config/local.neon
+nettrine.dbal:
+	connections:
+		default:
+			# separate database, it is dropped and created again by integration tests
+			dbname: flow_erp_test
+
+nettrine.orm:
+	managers:
+		default:
+			autoGenerateProxyClasses: true
